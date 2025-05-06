@@ -1,0 +1,29 @@
+FROM ghcr.io/ublue-os/bluefin-cli:latest
+
+# 1.  Packages you always want
+RUN apk add --no-cache zsh ripgrep fzf fastfetch btop yadm gnupg
+RUN brew install lsd fastfetch btop
+
+# 2.  Neovim – kept in its own repo
+ARG NVIM_REPO=https://github.com/Rom3dius/lazyvim-romedius
+RUN apk add --no-cache neovim \
+  && git clone --depth=1 $NVIM_REPO /opt/nvim \
+  && ln -s /opt/nvim /etc/skel/.config/nvim      # pre‑seed for new users
+
+# 3.  Copy the repo in so yadm can bootstrap /etc/skel
+ADD . /src
+
+# 4.  Add oh-my-zsh service and helper
+RUN mkdir -p /usr/etc/ohmyzsh /usr/lib/systemd/user && \
+  cp /src/infra/omz/omz-install-or-update.sh /usr/etc/ohmyzsh/ && \
+  chmod +x /usr/etc/ohmyzsh/omz-install-or-update.sh && \
+  cp /src/infra/omz/ohmyzsh-install.service /usr/lib/systemd/user/ && \
+  # enable for every user that logs in (systemd --user looks in $HOME first)
+  systemctl --user enable ohmyzsh-install.service || true
+
+# Apply dot‑files into /etc/skel *at build time* with templates but WITHOUT decrypting
+RUN yadm --yadm-dir=/src/.git --yadm-work-tree=/etc/skel checkout -f \
+  && yadm --yadm-dir=/src/.git --yadm-work-tree=/etc/skel alt
+
+# 4.  Pre‑install Neovim plugins once (optional, fast boots)
+RUN nvim --headless +Lazy!sync +qa

@@ -1,0 +1,15 @@
+[Container]
+Image=ghcr.io/Rom3dius/rome-dev:latest
+Name=dev
+User=$UID
+UserNS=keep-id
+Volumes=home:/home/$USER
+Volumes=%t:%t
+Environment=SSH_AUTH_SOCK=%t/1password/agent.sock   # 1Password socket path :contentReference[oaicite:1]{index=1}
+Environment=CONTAINER_HOST=unix:///run/user/$UID/podman/podman.sock
+Network=host
+Remove=true
+Update=true
+
+[Service]
+Restart=on-failure
