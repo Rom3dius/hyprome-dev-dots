@@ -1,6 +1,8 @@
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
+export TERM="xterm-256color"
+
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="agnoster"
 
@@ -50,4 +52,8 @@ if [[ -d "$HOME/.extras" ]]; then
       . "$_extra" || printf '[.extras] %s exited with code %d\n' "$_extra" "$?" >&2
     fi
   done
+fi
+
+if [ -z "$container" ] && [ -n "$PS1" ]; then
+  exec distrobox enter hyprome-dev-distrobox-quadlet
 fi

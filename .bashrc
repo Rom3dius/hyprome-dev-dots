@@ -26,6 +26,6 @@ else
   echo "Start Hyprland with command Hyprland"
 fi
 
-if [ -z "$INSIDE_DEV" ] && [ -n "$PS1" ]; then
-  exec distrobox enter dev
+if [ -z "$container" ] && [ -n "$PS1" ]; then
+  exec distrobox enter hyprome-dev-distrobox-quadlet
 fi
