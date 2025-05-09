@@ -1,21 +1,27 @@
 [Unit]
-Description=hyprome-dev distrobox, shell drops into it by default
-After=local-fs.target
+Description=Default dev "toolbox", based on Ubuntu
 
 [Container]
-Image=ghcr.io/rom3dius/hyprome-dev:latest
-ContainerName=hyprome-dev-distrobox-quadlet
+Annotation=run.oci.keep_original_groups=1
 AutoUpdate=registry
+ContainerName=hyprome-dev-distrobox-quadlet
 Environment=SHELL=%s
 Environment=HOME=%h
 Environment=container=podman
-Hostname=hyprome-toolbox
+Exec=--verbose --name %u --user %U --group %G --home %h --init "0" --nvidia "1" -- " "
+Image=ghcr.io/rom3dius/hyprome-dev:latest
+HostName=ubuntu-toolbox.%l
+Label=manager=distrobox
+Network=host
+PodmanArgs=--entrypoint /usr/bin/entrypoint
+PodmanArgs=--ipc host
+PodmanArgs=--pid host
+PodmanArgs=--privileged
+PodmanArgs=--security-opt label=disable
+PodmanArgs=--security-opt apparmor=unconfined
+Ulimit=host
 User=root:root
 UserNS=keep-id
-Ulimit=host
-Network=host
-PodmanArgs=--entrypoint /usr/bin/entrypoint --ipc host --pid host --privileged --security-opt label=disable --security-opt apparmor=unconfined
-
 Volume=/:/run/host:rslave
 Volume=/tmp:/tmp:rslave
 Volume=/usr/bin/distrobox-init:/usr/bin/entrypoint:ro
@@ -32,7 +38,3 @@ Volume=/var/home/%u:/var/home/%u:rslave
 Volume=%t:%t:rslave
 Volume=/etc/hosts:/etc/hosts:ro
 Volume=/etc/resolv.conf:/etc/resolv.conf:ro
-
-[Install]
-WantedBy=default.target
-
