@@ -45,6 +45,7 @@ alias lt='ls --tree'
 
 # Custom aliases
 alias fperm='stat -c "%a %n"'
+alias update-dots='yadm clone -f https://github.com/Rom3dius/hyprome-dev-dots && yadm checkout "/home/romedius"'
 
 # ─────────────────────────── ~/.extras overrides (SAFE) ───────────────────────
 #   • All *.sh in ~/.extras are sourced in lexical order.
@@ -67,7 +68,6 @@ host() {
 reset-container() {
   host systemctl --user start reset-hyprome.service
 }
-
 
 if [ -z "$container" ] && [ -z "$NO_DISTROBOX_AUTOENTER" ] && [ -n "$PS1" ]; then
   CONTAINER_NAME="hyprome-dev-distrobox-quadlet"
