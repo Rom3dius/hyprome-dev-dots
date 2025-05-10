@@ -16,16 +16,16 @@ if [ -f ~/.bashrc_custom ]; then
   source ~/.bashrc_custom
 fi
 
-# -----------------------------------------------------
-# Fastfetch if in Hyprland
-# -----------------------------------------------------
-if [[ $(tty) == *"pts"* ]]; then
-  fastfetch
+if [ "$SHLVL" -eq 1 ]; then
+  exec zsh -l
 else
-  echo
-  echo "Start Hyprland with command Hyprland"
+  exec zsh
 fi
 
-if [ -z "$container" ] && [ -n "$PS1" ]; then
+host() {
+  distrobox-host-exec env NO_DISTROBOX_AUTOENTER=1 "$@"
+}
+
+if [ -z "$container" ] && [ -z "$NO_DISTROBOX_AUTOENTER" ] && [ -n "$PS1" ]; then
   exec distrobox enter hyprome-dev-distrobox-quadlet
 fi

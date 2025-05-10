@@ -1,3 +1,9 @@
+#                   .__                   
+#    ________  _____|  |_________   ____  
+#    \___   / /  ___/  |  \_  __ \_/ ___\ 
+#     /    /  \___ \|   Y  \  | \/\  \___ 
+# /\ /_____ \/____  >___|  /__|    \___  >
+# \/       \/     \/     \/            \/ 
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
@@ -48,12 +54,16 @@ alias fperm='stat -c "%a %n"'
 if [[ -d "$HOME/.extras" ]]; then
   for _extra in "$HOME"/.extras/*.sh(N); do    # (N) → no‑match expands to null
     if [[ -r "$_extra" ]]; then
-      # shellcheck source=/dev/null
+# shellcheck source=/dev/null
       . "$_extra" || printf '[.extras] %s exited with code %d\n' "$_extra" "$?" >&2
     fi
   done
 fi
 
-if [ -z "$container" ] && [ -n "$PS1" ]; then
+host() {
+  distrobox-host-exec env NO_DISTROBOX_AUTOENTER=1 "$@"
+}
+
+if [ -z "$container" ] && [ -z "$NO_DISTROBOX_AUTOENTER" ] && [ -n "$PS1" ]; then
   exec distrobox enter hyprome-dev-distrobox-quadlet
 fi
