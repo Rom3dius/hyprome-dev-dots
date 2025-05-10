@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+
+CONTAINER_NAME="hyprome-dev-distrobox-quadlet"
+IMAGE="ghcr.io/rom3dius/hyprome-dev:latest"
+
+echo "🔻 Stopping container..."
+podman stop "$CONTAINER_NAME" || true
+
+echo "🧹 Removing container..."
+podman rm "$CONTAINER_NAME" || true
+
+echo "⬇️ Pulling latest image..."
+podman pull "$IMAGE"
+
+echo "🔄 Restarting container via systemd..."
+systemctl --user restart hyprome-dev.service
+
+echo "✅ Container $CONTAINER_NAME has been reset and restarted."

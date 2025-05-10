@@ -64,6 +64,20 @@ host() {
   distrobox-host-exec env NO_DISTROBOX_AUTOENTER=1 "$@"
 }
 
+reset-container() {
+  host systemctl --user start reset-hyprome.service
+}
+
+
 if [ -z "$container" ] && [ -z "$NO_DISTROBOX_AUTOENTER" ] && [ -n "$PS1" ]; then
-  exec distrobox enter hyprome-dev-distrobox-quadlet
+  CONTAINER_NAME="hyprome-dev-distrobox-quadlet"
+
+  if podman container exists "$CONTAINER_NAME"; then
+    if [ "$(podman inspect -f '{{.State.Running}}' "$CONTAINER_NAME" 2>/dev/null)" = "true" ]; then
+      exec distrobox enter "$CONTAINER_NAME"
+    fi
+  fi
+
+  echo "⚠️ Container '$CONTAINER_NAME' is not running yet."
+  echo "💡 You can start it with: systemctl --user start container-$CONTAINER_NAME.service"
 fi

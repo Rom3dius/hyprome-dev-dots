@@ -1,5 +1,5 @@
 [Unit]
-Description=Default dev "toolbox", based on Ubuntu
+Description=Default dev "toolbox"
 
 [Container]
 Annotation=run.oci.keep_original_groups=1
@@ -10,7 +10,7 @@ Environment=HOME=%h
 Environment=container=podman
 Exec=--verbose --name %u --user %U --group %G --home %h --init "0" --nvidia "1" -- " "
 Image=ghcr.io/rom3dius/hyprome-dev:latest
-HostName=ubuntu-toolbox.%l
+HostName=toolbox.%l
 Label=manager=distrobox
 Network=host
 PodmanArgs=--entrypoint /usr/bin/entrypoint

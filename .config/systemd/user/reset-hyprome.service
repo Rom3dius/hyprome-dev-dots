@@ -1,0 +1,6 @@
+[Unit]
+Description=Reset and restart hyprome container
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/reset-hyprome-dev
