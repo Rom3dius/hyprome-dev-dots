@@ -61,6 +61,12 @@ if [[ -d "$HOME/.extras" ]]; then
   done
 fi
 
+# brew
+if [[ -z ${BREW_LOADED-} ]]; then                # run only once per shell
+  HB="/home/linuxbrew/.linuxbrew/bin/brew"       # canonical Linuxbrew path
+  [[ -x $HB ]] && eval "$($HB shellenv 2>/dev/null)" && export BREW_LOADED=1
+fi
+
 host() {
   distrobox-host-exec env NO_DISTROBOX_AUTOENTER=1 "$@"
 }
