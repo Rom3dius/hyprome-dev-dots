@@ -1,0 +1,7 @@
+# This is Git's per-user configuration file.
+[user]
+	name = Romedius
+	email = r@romedius.xyz
+
+[includeIf "gitdir:~/work/"]
+    path = ~/.extras/gitconfig-work
