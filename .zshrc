@@ -18,6 +18,7 @@ plugins=(
   kitty
   extract
   podman
+  ssh-agent
 )
 
 source "$ZSH/oh-my-zsh.sh"

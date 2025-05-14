@@ -1,0 +1,21 @@
+[Unit]
+Description=Mount NextCloud zettelkasten via rclone
+After=network-online.target
+Wants=network-online.target
+RequiresMountsFor=%h/zettelkasten
+
+[Service]
+Type=notify
+ExecStartPre=/bin/mkdir -p %h/zettelkasten
+ExecStart=/usr/bin/rclone mount nextcloud:zettelkasten %h/zettelkasten \
+    --vfs-cache-mode writes \
+    --daemon-timeout=10m \
+    --umask 007 \
+    --uid=%U --gid=%G \
+    --config=%h/.config/rclone/rclone.conf
+ExecStop=/bin/fusermount -u %h/zettelkasten
+Restart=on-failure
+TimeoutSec=30
+
+[Install]
+WantedBy=default.target
