@@ -9,6 +9,25 @@
 
 export TERM="xterm-256color"
 
+# before anything else, yadm decrypt
+decrypt_yadm_if_needed() {
+  local enc_file="$HOME/.local/share/yadm/encrypt"
+  local hash_file="$HOME/.cache/yadm-decrypt.hash"
+
+  mkdir -p ~/.cache
+
+  # If no hash exists, or the file has changed
+  if [[ ! -f "$hash_file" ]] || ! cmp -s <(sha256sum "$enc_file" | cut -d ' ' -f1) "$hash_file"; then
+    echo "[yadm] Encrypted files changed. Decrypting..."
+    yadm decrypt && sha256sum "$enc_file" | cut -d ' ' -f1 > "$hash_file"
+  fi
+}
+
+if [ -z "$container" ]; then
+  decrypt_yadm_if_needed
+fi
+
+# setup zsh and zsh plugins
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="agnoster"
 
@@ -68,10 +87,12 @@ if [[ -z ${BREW_LOADED-} ]]; then                # run only once per shell
   [[ -x $HB ]] && eval "$($HB shellenv 2>/dev/null)" && export BREW_LOADED=1
 fi
 
+# execute commands on the host from within the container
 host() {
   distrobox-host-exec env NO_DISTROBOX_AUTOENTER=1 "$@"
 }
 
+# reset or update the container
 reset-container() {
   host systemctl --user start reset-hyprome.service
 }
