@@ -23,6 +23,10 @@ decrypt_yadm_if_needed() {
   fi
 }
 
+if [ -z "$container" ]; then
+  decrypt_yadm_if_needed
+fi
+
 # setup zsh and zsh plugins
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="agnoster"
