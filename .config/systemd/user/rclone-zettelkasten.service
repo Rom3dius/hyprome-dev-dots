@@ -7,7 +7,7 @@ RequiresMountsFor=%h/zettelkasten
 [Service]
 Type=notify
 ExecStartPre=/bin/mkdir -p %h/zettelkasten
-ExecStart=/usr/bin/rclone mount nextcloud:NvimNotes/zettelkasten ~/zettelkasten \
+ExecStart=/usr/bin/rclone mount nextcloud:NvimNotes/zettelkasten /home/%u/zettelkasten \
   --vfs-cache-mode full \
   --vfs-cache-max-size 2G \
   --vfs-cache-max-age 24h \
@@ -17,9 +17,10 @@ ExecStart=/usr/bin/rclone mount nextcloud:NvimNotes/zettelkasten ~/zettelkasten 
   --poll-interval 15s \
   --attr-timeout 1s \
   --umask 002 \
-  --uid $(id -u) \
-  --gid $(id -g) \
-  --cache-dir ~/.cache/rclone-zettelkasten
+  --uid=%U \
+  --gid=%G \
+  --cache-dir=/home/%u/.cache/rclone-zettelkasten
+
 ExecStop=/bin/fusermount -u %h/zettelkasten
 Restart=on-failure
 TimeoutSec=30

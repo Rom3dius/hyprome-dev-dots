@@ -5,3 +5,5 @@
 
 [includeIf "gitdir:~/work/"]
     path = ~/.extras/gitconfig-work
+[pull]
+	rebase = true

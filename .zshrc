@@ -11,7 +11,7 @@ export TERM="xterm-256color"
 
 # before anything else, yadm decrypt
 decrypt_yadm_if_needed() {
-  local enc_file="$HOME/.local/share/yadm/encrypt"
+  local enc_file="$HOME/.local/share/yadm/archive"
   local hash_file="$HOME/.cache/yadm-decrypt.hash"
 
   mkdir -p ~/.cache
@@ -22,10 +22,6 @@ decrypt_yadm_if_needed() {
     yadm decrypt && sha256sum "$enc_file" | cut -d ' ' -f1 > "$hash_file"
   fi
 }
-
-if [ -z "$container" ]; then
-  decrypt_yadm_if_needed
-fi
 
 # setup zsh and zsh plugins
 export ZSH="$HOME/.oh-my-zsh"
