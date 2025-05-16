@@ -1,9 +1,0 @@
-#!/bin/bash
-
-# Enable and start the rclone-zettelkasten systemd user service
-if command -v systemctl &>/dev/null && systemctl --user --version &>/dev/null; then
-    echo "Enabling and starting rclone-zettelkasten service..."
-    systemctl --user daemon-reload
-    systemctl --user enable rclone-zettelkasten.service
-    systemctl --user start rclone-zettelkasten.service
-fi

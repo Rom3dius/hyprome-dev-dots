@@ -42,9 +42,6 @@ plugins=(
 
 source "$ZSH/oh-my-zsh.sh"
 
-# ───────────────────────────────── fastfetch ──────────────────────────────────
-fastfetch -c "$HOME/.config/fastfetch/config-compact.jsonc"
-
 # ────────────────────────────────── fzf key‑bindings ─────────────────────────
 source <(fzf --zsh)
 
@@ -105,6 +102,8 @@ if [ -z "$container" ] && [ -z "$NO_DISTROBOX_AUTOENTER" ] && [ -n "$PS1" ]; the
       exec distrobox enter "$CONTAINER_NAME"
     fi
   fi
+
+  fastfetch -c "$HOME/.config/fastfetch/config-compact.jsonc"
 
   echo "⚠️ Container '$CONTAINER_NAME' is not running yet."
   echo "💡 You can start it with: systemctl --user start container-$CONTAINER_NAME.service"
