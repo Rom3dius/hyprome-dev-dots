@@ -10,7 +10,14 @@ fi
 
 # Install the font
 if [ ! -f ~/.local/share/fonts/HackNerdFont-Regular.ttf ]; then
+  echo "Install HackNerdFont"
   wget -P /tmp/ https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/Hack.zip
   unzip /tmp/Hack.zip -d ~/.local/share/fonts/
   fc-cache -vf ~/.local/share/fonts
+fi
+
+# Install neovim config
+if [ ! -f ~/.config/nvim/init.lua ]; then
+  echo "Installing NeoVim config"
+  git clone https://github.com/Rom3dius/lazyvim-romedius ~/.config/nvim
 fi
