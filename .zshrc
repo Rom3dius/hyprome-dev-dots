@@ -51,7 +51,7 @@ HISTSIZE=10000
 SAVEHIST=10000
 setopt appendhistory
 
-path+=('~/.local/bin')
+path+=("$HOME/.local/bin")
 
 # ───────────────────────────── pretty ls via lsd ──────────────────────────────
 alias ls='lsd'
