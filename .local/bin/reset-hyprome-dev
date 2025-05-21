@@ -5,6 +5,7 @@ CONTAINER_NAME="hyprome-dev-distrobox-quadlet"
 IMAGE="ghcr.io/rom3dius/hyprome-dev:latest"
 
 echo "🔻 Stopping container..."
+systemctl --user stop hyprome-dev.service
 podman stop "$CONTAINER_NAME" || true
 
 echo "🧹 Removing container..."
