@@ -176,6 +176,14 @@
         "on-click": "pavucontrol"
     },
 
+    // Tailscale
+    "custom/tailscale": {
+        "exec": "~/.config/waybar/scripts/tailscale_profile.sh",
+        "interval": 10,
+        "return-type": "json",
+        "format": "{}"
+    },
+
     // Bluetooth
     "bluetooth": {
         "format-disabled": "",
