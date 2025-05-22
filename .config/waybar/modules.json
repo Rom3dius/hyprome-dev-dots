@@ -179,7 +179,8 @@
     // Tailscale
     "custom/tailscale": {
         "exec": "~/.config/waybar/scripts/tailscale_profile.sh",
-        "interval": 10,
+        "interval": 5,
+        "on-click": "~/.config/waybar/scripts/tailscale_profile.sh --next",
         "return-type": "json",
         "format": "{}"
     },
