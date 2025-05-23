@@ -27,6 +27,12 @@ if [ -z "$container" ]; then
   decrypt_yadm_if_needed
 fi
 
+# brew
+if [[ -z ${BREW_LOADED-} ]]; then                # run only once per shell
+  HB="/home/linuxbrew/.linuxbrew/bin/brew"       # canonical Linuxbrew path
+  [[ -x $HB ]] && eval "$($HB shellenv 2>/dev/null)" && export BREW_LOADED=1
+fi
+
 # setup zsh and zsh plugins
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="agnoster"
@@ -77,12 +83,6 @@ if [[ -d "$HOME/.extras" ]]; then
       . "$_extra" || printf '[.extras] %s exited with code %d\n' "$_extra" "$?" >&2
     fi
   done
-fi
-
-# brew
-if [[ -z ${BREW_LOADED-} ]]; then                # run only once per shell
-  HB="/home/linuxbrew/.linuxbrew/bin/brew"       # canonical Linuxbrew path
-  [[ -x $HB ]] && eval "$($HB shellenv 2>/dev/null)" && export BREW_LOADED=1
 fi
 
 # execute commands on the host from within the container
