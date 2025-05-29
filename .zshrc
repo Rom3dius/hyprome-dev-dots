@@ -127,19 +127,8 @@ host() {
   distrobox-host-exec env NO_DISTROBOX_AUTOENTER=1 "$@"
 }
 
-# reset or update the container
-reset-dev {
+reset-dev() {
   host systemctl --user start reset-hyprome.service
-}
-
-setup-dev {
-  if [ -z "$container" ]; then
-    systemctl --user stop hyprome-dev
-    podman pull ghcr.io/rom3dius/hyprome-dev:latest
-    systemctl --user start hyprome-dev
-  else
-    echo "Cannot be run in a container!"
-  fi
 }
 
 if [ -z "$container" ] && [ -z "$NO_DISTROBOX_AUTOENTER" ] && [ -n "$PS1" ]; then
@@ -154,5 +143,5 @@ if [ -z "$container" ] && [ -z "$NO_DISTROBOX_AUTOENTER" ] && [ -n "$PS1" ]; the
   fastfetch -c "$HOME/.config/fastfetch/config-compact.jsonc"
 
   echo "⚠️ Container '$CONTAINER_NAME' is not running yet."
-  echo "  Try running `setup-dev` and restarting your shell."
+  echo "  Try running `reset-dev` and restarting your shell."
 fi

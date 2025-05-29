@@ -1,0 +1,7 @@
+[Unit]
+Description=Reset hyprome dev container
+
+[Service]
+Type=oneshot
+ExecStart=reset-hyprome-dev
+RemainAfterExit=true
