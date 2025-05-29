@@ -17,6 +17,7 @@
     "modules-left": [
         "custom/appmenu",
         "group/quicklinks",
+        "custom/tailscale",
         "hyprland/window"
     ],
     "modules-center": [
@@ -24,9 +25,7 @@
     ],
     "modules-right": [
         "mpd", 
-        "custom/tailscale", 
         "pulseaudio", 
-        "network", 
         "cpu", 
         "memory", 
         "keyboard-state", 
