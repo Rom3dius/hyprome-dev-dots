@@ -128,8 +128,18 @@ host() {
 }
 
 # reset or update the container
-reset-container() {
+reset-dev {
   host systemctl --user start reset-hyprome.service
+}
+
+setup-dev {
+  if [ -z "$container" ]; then
+    systemctl --user stop hyprome-dev
+    podman pull ghcr.io/rom3dius/hyprome-dev:latest
+    systemctl --user start hyprome-dev
+  else
+    echo "Cannot be run in a container!"
+  fi
 }
 
 if [ -z "$container" ] && [ -z "$NO_DISTROBOX_AUTOENTER" ] && [ -n "$PS1" ]; then
@@ -144,5 +154,5 @@ if [ -z "$container" ] && [ -z "$NO_DISTROBOX_AUTOENTER" ] && [ -n "$PS1" ]; the
   fastfetch -c "$HOME/.config/fastfetch/config-compact.jsonc"
 
   echo "⚠️ Container '$CONTAINER_NAME' is not running yet."
-  echo "💡 You can start it with: systemctl --user start container-$CONTAINER_NAME.service"
+  echo "  Try running `setup-dev` and restarting your shell."
 fi
