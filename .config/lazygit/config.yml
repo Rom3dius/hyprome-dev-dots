@@ -1,0 +1,25 @@
+gui:
+  expandFocusedSidePanel: true
+  language: "en"
+  mouseEvents: false
+  showBottomLine: false
+  showIcons: true
+  showRandomTip: false
+  sidePanelWidth: 0.15 # From 0 to 1
+
+git:
+  autoFetch: false
+  # paging:
+  #   colorArg: always
+  #   pager: delta --dark --paging=never
+
+os:
+  editCommand: "nvim"
+  editCommandTemplate: "{{editor}} +{{line}} -- {{filename}}"
+
+refresher:
+  refreshInterval: 1
+
+update:
+  method: prompt
+  days: 2

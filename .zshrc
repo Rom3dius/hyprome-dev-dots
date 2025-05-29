@@ -45,7 +45,6 @@ plugins=(
   extract
   podman
   ssh-agent
-  purge-history-secrets
 )
 
 source "$ZSH/oh-my-zsh.sh"
