@@ -185,6 +185,19 @@
         "format": "{}"
     },
 
+    // Hypridle inhibitor
+    "custom/hypridle": {
+    	"format": "󱫗 ",
+    	"return-type": "json",
+    	"escape": true,
+    	"exec-on-event": true,
+    	"interval": 60,
+    	"exec": "$HOME/.config/ml4w/scripts/hypridle.sh status",
+    	"on-click": "$HOME/.config/ml4w/scripts/hypridle.sh toggle",
+    	"on-click-right": "hyprlock"
+    },
+
+
     // Bluetooth
     "bluetooth": {
         "format-disabled": "",

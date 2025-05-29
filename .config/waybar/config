@@ -21,16 +21,17 @@
         "hyprland/window"
     ],
     "modules-center": [
-        "hyprland/workspaces"
+        "hyprland/workspaces",
+        "custom/hypridle"
     ],
     "modules-right": [
-        "mpd", 
-        "pulseaudio", 
-        "cpu", 
-        "memory", 
-        "keyboard-state", 
-        "battery", 
-        "clock", 
+        "mpd",
+        "pulseaudio",
+        "keyboard-state",
+        "battery",
+        "clock",
+        "cpu",
+        "memory",
         "tray",
         "custom/exit"
     ]
