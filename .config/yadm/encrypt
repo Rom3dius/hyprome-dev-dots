@@ -1,3 +1,4 @@
 .extras/c1*
 .extras/*work*
+.extras/secrets.sh
 .config/rclone/*
