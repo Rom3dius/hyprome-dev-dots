@@ -9,7 +9,7 @@ Environment=SHELL=%s
 Environment=HOME=%h
 Environment=container=podman
 Exec=--verbose --name %u --user %U --group %G --home %h --init "0" --nvidia "1" -- " "
-Image=ghcr.io/rom3dius/hyprome-dev:latest
+Image=localhost/hyprome-dev:latest
 HostName=toolbox.%l
 Label=manager=distrobox
 Network=host
