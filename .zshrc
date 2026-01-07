@@ -108,6 +108,43 @@ alias extrr='extract_and_remove '
 alias fperm='stat -c "%a %n"'
 alias update-dots='yadm clone -f https://github.com/Rom3dius/hyprome-dev-dots && yadm checkout "/home/romedius"'
 
+# ─────────────────────────── yazi wrapper (cd on exit) ────────────────────────
+function yy() {
+  local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+  yazi "$@" --cwd-file="$tmp"
+  if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+    builtin cd -- "$cwd"
+  fi
+  rm -f -- "$tmp"
+}
+
+# ─────────────────────────── yazi plugins (auto-install) ──────────────────────
+if command -v ya &>/dev/null; then
+  _yazi_plugins=(
+    "yazi-rs/plugins:jump-to-char"
+    "yazi-rs/plugins:smart-enter"
+    "yazi-rs/plugins:chmod"
+  )
+  _yazi_plugin_dir="$HOME/.config/yazi/plugins"
+  _need_install=false
+
+  for _p in "${_yazi_plugins[@]}"; do
+    _name="${_p##*:}"
+    if [[ ! -d "$_yazi_plugin_dir/${_name}.yazi" ]]; then
+      _need_install=true
+      break
+    fi
+  done
+
+  if $_need_install; then
+    echo "[yazi] Installing missing plugins..."
+    for _p in "${_yazi_plugins[@]}"; do
+      ya pkg add "$_p" 2>/dev/null
+    done
+  fi
+  unset _yazi_plugins _yazi_plugin_dir _need_install _p _name
+fi
+
 # ─────────────────────────── ~/.extras overrides (SAFE) ───────────────────────
 #   • All *.sh in ~/.extras are sourced in lexical order.
 #   • A missing dir is silently ignored.

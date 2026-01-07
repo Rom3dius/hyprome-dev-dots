@@ -1,3 +1,125 @@
 [mgr]
 sort_by = "mtime"
 sort_dir_first = true
+show_hidden = false
+show_symlink = true
+linemode = "size"
+
+[preview]
+max_width = 1000
+max_height = 1000
+image_delay = 30
+image_filter = "triangle"
+image_quality = 75
+
+[opener]
+edit = [
+  { run = '${EDITOR:-nvim} "$@"', desc = "Edit with $EDITOR", block = true, for = "unix" },
+]
+
+image = [
+  { run = 'imv "$@"', desc = "Open with imv", orphan = true, for = "unix" },
+]
+
+video = [
+  { run = 'flatpak run io.mpv.Mpv "$@"', desc = "Play with mpv", orphan = true, for = "unix" },
+  { run = 'flatpak run io.mpv.Mpv --no-video "$@"', desc = "Audio only", orphan = true, for = "unix" },
+]
+
+audio = [
+  { run = 'flatpak run io.mpv.Mpv "$@"', desc = "Play with mpv", orphan = true, for = "unix" },
+]
+
+pdf = [
+  { run = 'zathura "$@"', desc = "Open with Zathura", orphan = true, for = "unix" },
+]
+
+archive = [
+  { run = 'unar "$1"', desc = "Extract here", block = true, for = "unix" },
+]
+
+office = [
+  { run = 'libreoffice "$@"', desc = "Open with LibreOffice", orphan = true, for = "unix" },
+]
+
+open = [
+  { run = 'xdg-open "$@"', desc = "Open with default", orphan = true, for = "linux" },
+]
+
+[open]
+rules = [
+  { name = "*/", use = ["edit", "open"] },
+
+  # Text and code
+  { mime = "text/*", use = ["edit", "open"] },
+  { mime = "application/json", use = ["edit", "open"] },
+  { mime = "application/javascript", use = ["edit", "open"] },
+  { mime = "application/x-shellscript", use = ["edit", "open"] },
+  { mime = "application/toml", use = ["edit", "open"] },
+  { mime = "application/yaml", use = ["edit", "open"] },
+  { mime = "application/xml", use = ["edit", "open"] },
+
+  # Images
+  { mime = "image/*", use = ["image", "open"] },
+
+  # Videos
+  { mime = "video/*", use = ["video", "open"] },
+
+  # Audio
+  { mime = "audio/*", use = ["audio", "open"] },
+
+  # PDF
+  { mime = "application/pdf", use = ["pdf", "open"] },
+
+  # Archives
+  { mime = "application/zip", use = ["archive", "open"] },
+  { mime = "application/gzip", use = ["archive", "open"] },
+  { mime = "application/x-tar", use = ["archive", "open"] },
+  { mime = "application/x-bzip2", use = ["archive", "open"] },
+  { mime = "application/x-7z-compressed", use = ["archive", "open"] },
+  { mime = "application/x-rar", use = ["archive", "open"] },
+  { mime = "application/x-xz", use = ["archive", "open"] },
+
+  # Office
+  { mime = "application/vnd.openxmlformats-officedocument.*", use = ["office", "open"] },
+  { mime = "application/vnd.oasis.opendocument.*", use = ["office", "open"] },
+  { mime = "application/msword", use = ["office", "open"] },
+  { mime = "application/vnd.ms-*", use = ["office", "open"] },
+
+  # Fallback
+  { name = "*", use = ["open"] },
+]
+
+[tasks]
+micro_workers = 10
+macro_workers = 25
+bizarre_retry = 5
+image_alloc = 536870912
+suppress_preload = false
+
+[plugin]
+preloaders = [
+  { name = "*", cond = "!mime", run = "mime", multi = true, prio = "high" },
+  { mime = "image/*", run = "image" },
+  { mime = "video/*", run = "video" },
+  { mime = "application/pdf", run = "pdf" },
+]
+
+previewers = [
+  { name = "*/", run = "folder", sync = true },
+  { mime = "text/*", run = "code" },
+  { mime = "*/xml", run = "code" },
+  { mime = "*/json", run = "code" },
+  { mime = "*/javascript", run = "code" },
+  { mime = "image/*", run = "image" },
+  { mime = "video/*", run = "video" },
+  { mime = "application/pdf", run = "pdf" },
+  { mime = "application/zip", run = "archive" },
+  { mime = "application/gzip", run = "archive" },
+  { mime = "application/x-tar", run = "archive" },
+  { mime = "application/x-bzip2", run = "archive" },
+  { mime = "application/x-7z-compressed", run = "archive" },
+  { mime = "application/x-rar", run = "archive" },
+  { mime = "application/x-xz", run = "archive" },
+  { name = "*", run = "file" },
+]

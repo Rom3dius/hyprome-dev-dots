@@ -1,5 +1,78 @@
+# Shell
 [[mgr.prepend_keymap]]
 on = "!"
 for = "unix"
 run = 'shell "$SHELL" --block'
 desc = "Open $SHELL here"
+
+# Smart enter (open or enter directory)
+[[mgr.prepend_keymap]]
+on = "<Enter>"
+run = "plugin smart-enter"
+desc = "Enter or open"
+
+# Jump to char
+[[mgr.prepend_keymap]]
+on = "f"
+run = "plugin jump-to-char"
+desc = "Jump to char"
+
+# Chmod
+[[mgr.prepend_keymap]]
+on = ["c", "m"]
+run = "plugin chmod"
+desc = "Chmod"
+
+
+# Quick editor
+[[mgr.prepend_keymap]]
+on = "e"
+run = 'shell "$EDITOR $@" --block'
+desc = "Edit in $EDITOR"
+
+# Toggle hidden
+[[mgr.prepend_keymap]]
+on = "."
+run = "hidden toggle"
+desc = "Toggle hidden"
+
+# Bulk rename
+[[mgr.prepend_keymap]]
+on = "R"
+run = "bulk-rename"
+desc = "Bulk rename"
+
+# Create file/dir
+[[mgr.prepend_keymap]]
+on = "a"
+run = "create"
+desc = "Create"
+
+# Trash
+[[mgr.prepend_keymap]]
+on = "d"
+run = "remove"
+desc = "Trash"
+
+[[mgr.prepend_keymap]]
+on = "D"
+run = "remove --permanently"
+desc = "Delete permanently"
+
+# Copy path to clipboard
+[[mgr.prepend_keymap]]
+on = ["y", "p"]
+run = 'shell "echo -n $1 | wl-copy" --confirm'
+desc = "Copy path"
+
+# Copy filename to clipboard
+[[mgr.prepend_keymap]]
+on = ["y", "n"]
+run = 'shell "basename $1 | tr -d \\n | wl-copy" --confirm'
+desc = "Copy filename"
+
+# Copy directory path
+[[mgr.prepend_keymap]]
+on = ["y", "d"]
+run = 'shell "dirname $1 | tr -d \\n | wl-copy" --confirm'
+desc = "Copy dir path"
