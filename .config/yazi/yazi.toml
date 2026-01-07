@@ -90,3 +90,36 @@ rules = [
   { name = "*", use = ["open"] },
 ]
 
+[tasks]
+micro_workers = 10
+macro_workers = 25
+bizarre_retry = 5
+image_alloc = 536870912
+suppress_preload = false
+
+[plugin]
+preloaders = [
+  { name = "*", cond = "!mime", run = "mime", multi = true, prio = "high" },
+  { mime = "image/*", run = "image" },
+  { mime = "video/*", run = "video" },
+  { mime = "application/pdf", run = "pdf" },
+]
+
+previewers = [
+  { name = "*/", run = "folder", sync = true },
+  { mime = "text/*", run = "code" },
+  { mime = "*/xml", run = "code" },
+  { mime = "*/json", run = "code" },
+  { mime = "*/javascript", run = "code" },
+  { mime = "image/*", run = "image" },
+  { mime = "video/*", run = "video" },
+  { mime = "application/pdf", run = "pdf" },
+  { mime = "application/zip", run = "archive" },
+  { mime = "application/gzip", run = "archive" },
+  { mime = "application/x-tar", run = "archive" },
+  { mime = "application/x-bzip2", run = "archive" },
+  { mime = "application/x-7z-compressed", run = "archive" },
+  { mime = "application/x-rar", run = "archive" },
+  { mime = "application/x-xz", run = "archive" },
+  { name = "*", run = "file" },
+]
