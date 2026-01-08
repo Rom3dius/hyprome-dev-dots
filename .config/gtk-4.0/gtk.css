@@ -1,0 +1,253 @@
+/*
+ * Wintergreen GTK4 Theme Overrides
+ * These styles complement your GTK theme with Wintergreen accent colors
+ */
+
+/* Window background */
+window {
+    background-color: #1a2332;
+}
+
+/* Header bars */
+headerbar {
+    background-color: #151d28;
+    color: #c8d5e3;
+    border-bottom: 1px solid #243342;
+}
+
+headerbar:backdrop {
+    background-color: #0f1419;
+    color: #a8b8c7;
+}
+
+/* Buttons */
+button {
+    background-color: #243342;
+    color: #c8d5e3;
+    border: 1px solid #495f75;
+    border-radius: 6px;
+}
+
+button:hover {
+    background-color: #2d3f52;
+    border-color: #73c5b8;
+}
+
+button:active,
+button:checked {
+    background-color: #73c5b8;
+    color: #1a2332;
+}
+
+/* Suggested action buttons */
+button.suggested-action {
+    background-color: #73c5b8;
+    color: #1a2332;
+}
+
+button.suggested-action:hover {
+    background-color: #8fc5a1;
+}
+
+/* Destructive action buttons */
+button.destructive-action {
+    background-color: #d88a8a;
+    color: #c8d5e3;
+}
+
+/* Text entries */
+entry {
+    background-color: #243342;
+    color: #c8d5e3;
+    border: 1px solid #495f75;
+    border-radius: 6px;
+}
+
+entry:focus {
+    border-color: #73c5b8;
+    outline-color: rgba(115, 197, 184, 0.3);
+}
+
+/* Selections */
+selection {
+    background-color: #73c5b8;
+    color: #1a2332;
+}
+
+/* Lists and treeviews */
+listview,
+list {
+    background-color: #1a2332;
+    color: #c8d5e3;
+}
+
+listview > row:selected,
+list > row:selected {
+    background-color: #2d3f52;
+    color: #c8d5e3;
+}
+
+listview > row:hover,
+list > row:hover {
+    background-color: #243342;
+}
+
+/* Sidebar */
+.sidebar {
+    background-color: #151d28;
+    border-right: 1px solid #243342;
+}
+
+.sidebar row:selected {
+    background-color: #2d3f52;
+}
+
+/* Scrollbars */
+scrollbar slider {
+    background-color: #495f75;
+    border-radius: 999px;
+    min-width: 8px;
+    min-height: 8px;
+}
+
+scrollbar slider:hover {
+    background-color: #73c5b8;
+}
+
+/* Check and radio buttons */
+checkbutton check,
+radiobutton radio {
+    background-color: #243342;
+    border: 1px solid #495f75;
+}
+
+checkbutton check:checked,
+radiobutton radio:checked {
+    background-color: #73c5b8;
+    color: #1a2332;
+}
+
+/* Progress bars */
+progressbar trough {
+    background-color: #243342;
+    border-radius: 999px;
+}
+
+progressbar progress {
+    background-color: #73c5b8;
+    border-radius: 999px;
+}
+
+/* Switches */
+switch {
+    background-color: #243342;
+    border-radius: 999px;
+}
+
+switch:checked {
+    background-color: #73c5b8;
+}
+
+switch > image {
+    background-color: #c8d5e3;
+    border-radius: 999px;
+}
+
+/* Tooltips */
+tooltip {
+    background-color: #243342;
+    color: #c8d5e3;
+    border: 1px solid #495f75;
+    border-radius: 6px;
+}
+
+/* Menus and popovers */
+popover,
+popover.menu {
+    background-color: #243342;
+    color: #c8d5e3;
+    border: 1px solid #495f75;
+}
+
+popover modelbutton:hover {
+    background-color: #2d3f52;
+}
+
+/* Tabs */
+tabbar tab {
+    background-color: #151d28;
+    color: #a8b8c7;
+}
+
+tabbar tab:checked {
+    background-color: #1a2332;
+    color: #c8d5e3;
+    border-bottom: 2px solid #73c5b8;
+}
+
+/* Scale/sliders */
+scale trough {
+    background-color: #243342;
+    border-radius: 999px;
+}
+
+scale highlight {
+    background-color: #73c5b8;
+    border-radius: 999px;
+}
+
+scale slider {
+    background-color: #c8d5e3;
+    border-radius: 50%;
+}
+
+/* Links */
+link,
+*:link {
+    color: #73c5b8;
+}
+
+link:visited,
+*:link:visited {
+    color: #b5a5d6;
+}
+
+/* Accent colors */
+@define-color accent_color #73c5b8;
+@define-color accent_bg_color #73c5b8;
+@define-color accent_fg_color #1a2332;
+@define-color destructive_color #d88a8a;
+@define-color destructive_bg_color #d88a8a;
+@define-color destructive_fg_color #c8d5e3;
+@define-color success_color #8fc5a1;
+@define-color success_bg_color #8fc5a1;
+@define-color success_fg_color #1a2332;
+@define-color warning_color #e6d89c;
+@define-color warning_bg_color #e6d89c;
+@define-color warning_fg_color #1a2332;
+@define-color error_color #d88a8a;
+@define-color error_bg_color #d88a8a;
+@define-color error_fg_color #c8d5e3;
+
+@define-color window_bg_color #1a2332;
+@define-color window_fg_color #c8d5e3;
+@define-color view_bg_color #1a2332;
+@define-color view_fg_color #c8d5e3;
+@define-color headerbar_bg_color #151d28;
+@define-color headerbar_fg_color #c8d5e3;
+@define-color headerbar_border_color #243342;
+@define-color headerbar_backdrop_color #0f1419;
+@define-color headerbar_shade_color rgba(0, 0, 0, 0.36);
+@define-color card_bg_color #243342;
+@define-color card_fg_color #c8d5e3;
+@define-color card_shade_color rgba(0, 0, 0, 0.36);
+@define-color dialog_bg_color #243342;
+@define-color dialog_fg_color #c8d5e3;
+@define-color popover_bg_color #243342;
+@define-color popover_fg_color #c8d5e3;
+@define-color shade_color rgba(0, 0, 0, 0.36);
+@define-color scrollbar_outline_color rgba(0, 0, 0, 0.5);
+@define-color sidebar_bg_color #151d28;
+@define-color sidebar_fg_color #c8d5e3;
+@define-color sidebar_backdrop_color #0f1419;
+@define-color sidebar_shade_color rgba(0, 0, 0, 0.36);

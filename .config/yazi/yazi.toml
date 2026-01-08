@@ -18,20 +18,20 @@ edit = [
 ]
 
 image = [
-  { run = 'imv "$@"', desc = "Open with imv", orphan = true, for = "unix" },
+  { run = 'distrobox-host-exec imv "$@"', desc = "Open with imv", orphan = true, for = "unix" },
 ]
 
 video = [
-  { run = 'flatpak run io.mpv.Mpv "$@"', desc = "Play with mpv", orphan = true, for = "unix" },
-  { run = 'flatpak run io.mpv.Mpv --no-video "$@"', desc = "Audio only", orphan = true, for = "unix" },
+  { run = 'distrobox-host-exec flatpak run io.mpv.Mpv "$@"', desc = "Play with mpv", orphan = true, for = "unix" },
+  { run = 'distrobox-host-exec flatpak run io.mpv.Mpv --no-video "$@"', desc = "Audio only", orphan = true, for = "unix" },
 ]
 
 audio = [
-  { run = 'flatpak run io.mpv.Mpv "$@"', desc = "Play with mpv", orphan = true, for = "unix" },
+  { run = 'distrobox-host-exec flatpak run io.mpv.Mpv "$@"', desc = "Play with mpv", orphan = true, for = "unix" },
 ]
 
 pdf = [
-  { run = 'zathura "$@"', desc = "Open with Zathura", orphan = true, for = "unix" },
+  { run = 'distrobox-host-exec zathura "$@"', desc = "Open with Zathura", orphan = true, for = "unix" },
 ]
 
 archive = [

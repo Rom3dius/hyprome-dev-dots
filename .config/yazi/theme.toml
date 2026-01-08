@@ -1,0 +1,116 @@
+# Wintergreen Theme for Yazi
+
+[manager]
+# Cwd (current working directory)
+cwd = { fg = "#73c5b8" }
+
+# Hovered
+hovered = { fg = "#c8d5e3", bg = "#2d3f52" }
+preview_hovered = { underline = true }
+
+# Find
+find_keyword = { fg = "#e6d89c", italic = true }
+find_position = { fg = "#d4a5c9", bg = "reset", italic = true }
+
+# Marker
+marker_selected = { fg = "#73c5b8", bg = "#73c5b8" }
+marker_copied = { fg = "#8fc5a1", bg = "#8fc5a1" }
+marker_cut = { fg = "#d88a8a", bg = "#d88a8a" }
+
+# Tab
+tab_active = { fg = "#1a2332", bg = "#73c5b8" }
+tab_inactive = { fg = "#c8d5e3", bg = "#243342" }
+tab_width = 1
+
+# Border
+border_symbol = "│"
+border_style = { fg = "#495f75" }
+
+# Count
+count_copied = { fg = "#1a2332", bg = "#8fc5a1" }
+count_cut = { fg = "#1a2332", bg = "#d88a8a" }
+count_selected = { fg = "#1a2332", bg = "#73c5b8" }
+
+[status]
+separator_open = ""
+separator_close = ""
+separator_style = { fg = "#243342", bg = "#243342" }
+
+# Mode
+mode_normal = { fg = "#1a2332", bg = "#73c5b8", bold = true }
+mode_select = { fg = "#1a2332", bg = "#8fc5a1", bold = true }
+mode_unset = { fg = "#1a2332", bg = "#e6d89c", bold = true }
+
+# Progress
+progress_label = { fg = "#c8d5e3", bold = true }
+progress_normal = { fg = "#73c5b8", bg = "#243342" }
+progress_error = { fg = "#d88a8a", bg = "#243342" }
+
+# Permissions
+permissions_t = { fg = "#73c5b8" }
+permissions_r = { fg = "#e6d89c" }
+permissions_w = { fg = "#d88a8a" }
+permissions_x = { fg = "#8fc5a1" }
+permissions_s = { fg = "#b5a5d6" }
+
+[input]
+border = { fg = "#73c5b8" }
+title = {}
+value = {}
+selected = { reversed = true }
+
+[select]
+border = { fg = "#73c5b8" }
+active = { fg = "#d4a5c9" }
+inactive = {}
+
+[tasks]
+border = { fg = "#73c5b8" }
+title = {}
+hovered = { underline = true }
+
+[which]
+mask = { bg = "#243342" }
+cand = { fg = "#73c5b8" }
+rest = { fg = "#6b8095" }
+desc = { fg = "#d4a5c9" }
+separator = "  "
+separator_style = { fg = "#495f75" }
+
+[help]
+on = { fg = "#d4a5c9" }
+exec = { fg = "#73c5b8" }
+desc = { fg = "#c8d5e3" }
+hovered = { bg = "#2d3f52", bold = true }
+footer = { fg = "#c8d5e3", bg = "#243342" }
+
+[filetype]
+rules = [
+  # Images
+  { mime = "image/*", fg = "#73c5b8" },
+
+  # Videos
+  { mime = "video/*", fg = "#e6d89c" },
+  { mime = "audio/*", fg = "#e6d89c" },
+
+  # Archives
+  { mime = "application/zip", fg = "#b5a5d6" },
+  { mime = "application/gzip", fg = "#b5a5d6" },
+  { mime = "application/x-tar", fg = "#b5a5d6" },
+  { mime = "application/x-bzip", fg = "#b5a5d6" },
+  { mime = "application/x-bzip2", fg = "#b5a5d6" },
+  { mime = "application/x-7z-compressed", fg = "#b5a5d6" },
+  { mime = "application/x-rar", fg = "#b5a5d6" },
+
+  # Documents
+  { mime = "application/pdf", fg = "#d88a8a" },
+  { mime = "application/*office*", fg = "#7da6d6" },
+  { mime = "application/*document*", fg = "#7da6d6" },
+
+  # Fallback
+  { name = "*", fg = "#c8d5e3" },
+  { name = "*/", fg = "#7da6d6" },
+]
+
+[icon]
+# Default icons with Wintergreen colors already applied via filetype rules

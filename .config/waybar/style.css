@@ -10,15 +10,16 @@
  * ----------------------------------------------------- 
 */
 
-@define-color backgroundlight #2c2b2b;
-@define-color backgrounddark #2c2b2b;
-@define-color workspacesbackground1 #a84d00;
-@define-color workspacesbackground2 #2c2b2b;
-@define-color bordercolor #FFFFFF;
-@define-color textcolor1 #FFFFFF;
-@define-color textcolor2 #FFFFFF;
-@define-color textcolor3 #FFFFFF;
-@define-color iconcolor #FFFFFF;
+/* Wintergreen Theme */
+@define-color backgroundlight #243342;
+@define-color backgrounddark #1a2332;
+@define-color workspacesbackground1 #73c5b8;
+@define-color workspacesbackground2 #2d3f52;
+@define-color bordercolor #495f75;
+@define-color textcolor1 #c8d5e3;
+@define-color textcolor2 #a8b8c7;
+@define-color textcolor3 #95a7b8;
+@define-color iconcolor #73c5b8;
 
 /* -----------------------------------------------------
  * General 
@@ -31,8 +32,8 @@
 }
 
 window#waybar {
-    background-color: rgba(0,0,0,0.2);
-    border-bottom: 0px solid #ffffff;
+    background-color: rgba(26,35,50,0.8);
+    border-bottom: 0px solid #495f75;
     /* color: #FFFFFF; */
     transition-property: background-color;
     transition-duration: .5s;
@@ -245,13 +246,12 @@ window#waybar.empty #window {
 
 #custom-hypridle,
 #idle_inhibitor {
-	color: #f9e2af;
-    /*background-color: #2d3436;*/
+	color: #e6d89c;
 }
 
 #custom-hypridle.notactive,
 #idle_inhibitor.activated {
-	color: #39FF14;
+	color: #8fc5a1;
 }
 
 /* -----------------------------------------------------
@@ -336,8 +336,8 @@ window#waybar.empty #window {
 }
 
 #battery.critical:not(.charging) {
-    background-color: #f53c3c;
-    color: @textcolor3;
+    background-color: #d88a8a;
+    color: @textcolor1;
     animation-name: blink;
     animation-duration: 0.5s;
     animation-timing-function: linear;
@@ -359,7 +359,7 @@ window#waybar.empty #window {
 
 #tray > .needs-attention {
     -gtk-icon-effect: highlight;
-    background-color: #eb4d4b;
+    background-color: #d88a8a;
 }
 
 /* -----------------------------------------------------
@@ -367,18 +367,18 @@ window#waybar.empty #window {
  * ----------------------------------------------------- */
 
 label:focus {
-    background-color: #000000;
+    background-color: #1a2332;
 }
 
 #backlight {
-    background-color: #90b1b1;
+    background-color: #73c5b8;
 }
 
 #network {
-    background-color: #2980b9;
+    background-color: #7da6d6;
 }
 
 #network.disconnected {
-    background-color: #f53c3c;
+    background-color: #d88a8a;
 }
 

@@ -1,0 +1,264 @@
+/*
+ * Wintergreen GTK3 Theme Overrides
+ * These styles complement your GTK theme with Wintergreen accent colors
+ */
+
+/* Define Wintergreen colors */
+@define-color wintergreen_base #1a2332;
+@define-color wintergreen_mantle #151d28;
+@define-color wintergreen_crust #0f1419;
+@define-color wintergreen_surface0 #243342;
+@define-color wintergreen_surface1 #2d3f52;
+@define-color wintergreen_surface2 #364b62;
+@define-color wintergreen_text #c8d5e3;
+@define-color wintergreen_subtext #a8b8c7;
+@define-color wintergreen_overlay #495f75;
+@define-color wintergreen_teal #73c5b8;
+@define-color wintergreen_green #8fc5a1;
+@define-color wintergreen_yellow #e6d89c;
+@define-color wintergreen_red #d88a8a;
+@define-color wintergreen_blue #7da6d6;
+@define-color wintergreen_pink #d4a5c9;
+@define-color wintergreen_mauve #b5a5d6;
+
+/* Window background */
+window {
+    background-color: @wintergreen_base;
+}
+
+/* Header bars */
+headerbar {
+    background-color: @wintergreen_mantle;
+    color: @wintergreen_text;
+    border-bottom: 1px solid @wintergreen_surface0;
+}
+
+headerbar:backdrop {
+    background-color: @wintergreen_crust;
+    color: @wintergreen_subtext;
+}
+
+/* Buttons */
+button {
+    background-color: @wintergreen_surface0;
+    color: @wintergreen_text;
+    border: 1px solid @wintergreen_overlay;
+    border-radius: 6px;
+}
+
+button:hover {
+    background-color: @wintergreen_surface1;
+    border-color: @wintergreen_teal;
+}
+
+button:active,
+button:checked {
+    background-color: @wintergreen_teal;
+    color: @wintergreen_base;
+}
+
+/* Suggested action buttons */
+button.suggested-action {
+    background-color: @wintergreen_teal;
+    color: @wintergreen_base;
+}
+
+button.suggested-action:hover {
+    background-color: @wintergreen_green;
+}
+
+/* Destructive action buttons */
+button.destructive-action {
+    background-color: @wintergreen_red;
+    color: @wintergreen_text;
+}
+
+/* Text entries */
+entry {
+    background-color: @wintergreen_surface0;
+    color: @wintergreen_text;
+    border: 1px solid @wintergreen_overlay;
+    border-radius: 6px;
+}
+
+entry:focus {
+    border-color: @wintergreen_teal;
+    box-shadow: 0 0 0 2px alpha(@wintergreen_teal, 0.3);
+}
+
+/* Selections */
+selection {
+    background-color: @wintergreen_teal;
+    color: @wintergreen_base;
+}
+
+/* Lists and treeviews */
+list,
+listview {
+    background-color: @wintergreen_base;
+    color: @wintergreen_text;
+}
+
+list row:selected,
+listview row:selected {
+    background-color: @wintergreen_surface1;
+    color: @wintergreen_text;
+}
+
+list row:hover,
+listview row:hover {
+    background-color: @wintergreen_surface0;
+}
+
+/* Sidebar */
+.sidebar {
+    background-color: @wintergreen_mantle;
+    border-right: 1px solid @wintergreen_surface0;
+}
+
+.sidebar row:selected {
+    background-color: @wintergreen_surface1;
+}
+
+/* Scrollbars */
+scrollbar slider {
+    background-color: @wintergreen_overlay;
+    border-radius: 999px;
+    min-width: 8px;
+    min-height: 8px;
+}
+
+scrollbar slider:hover {
+    background-color: @wintergreen_teal;
+}
+
+/* Check and radio buttons */
+checkbutton check,
+radiobutton radio {
+    background-color: @wintergreen_surface0;
+    border: 1px solid @wintergreen_overlay;
+}
+
+checkbutton check:checked,
+radiobutton radio:checked {
+    background-color: @wintergreen_teal;
+    color: @wintergreen_base;
+}
+
+/* Progress bars */
+progressbar trough {
+    background-color: @wintergreen_surface0;
+    border-radius: 999px;
+}
+
+progressbar progress {
+    background-color: @wintergreen_teal;
+    border-radius: 999px;
+}
+
+/* Switches */
+switch {
+    background-color: @wintergreen_surface0;
+    border-radius: 999px;
+}
+
+switch:checked {
+    background-color: @wintergreen_teal;
+}
+
+switch slider {
+    background-color: @wintergreen_text;
+    border-radius: 999px;
+}
+
+/* Tooltips */
+tooltip {
+    background-color: @wintergreen_surface0;
+    color: @wintergreen_text;
+    border: 1px solid @wintergreen_overlay;
+    border-radius: 6px;
+}
+
+/* Menus */
+menu {
+    background-color: @wintergreen_surface0;
+    color: @wintergreen_text;
+    border: 1px solid @wintergreen_overlay;
+    border-radius: 6px;
+}
+
+menu menuitem:hover {
+    background-color: @wintergreen_surface1;
+}
+
+/* Popovers */
+popover {
+    background-color: @wintergreen_surface0;
+    color: @wintergreen_text;
+    border: 1px solid @wintergreen_overlay;
+}
+
+/* Tabs */
+notebook tab {
+    background-color: @wintergreen_mantle;
+    color: @wintergreen_subtext;
+    border-bottom: 2px solid transparent;
+}
+
+notebook tab:checked {
+    background-color: @wintergreen_base;
+    color: @wintergreen_text;
+    border-bottom: 2px solid @wintergreen_teal;
+}
+
+/* Spinbuttons */
+spinbutton {
+    background-color: @wintergreen_surface0;
+    color: @wintergreen_text;
+    border: 1px solid @wintergreen_overlay;
+}
+
+/* Scale/sliders */
+scale trough {
+    background-color: @wintergreen_surface0;
+    border-radius: 999px;
+}
+
+scale highlight {
+    background-color: @wintergreen_teal;
+    border-radius: 999px;
+}
+
+scale slider {
+    background-color: @wintergreen_text;
+    border-radius: 50%;
+}
+
+/* Links */
+link,
+*:link {
+    color: @wintergreen_teal;
+}
+
+link:visited,
+*:link:visited {
+    color: @wintergreen_mauve;
+}
+
+/* Info bars */
+infobar {
+    background-color: @wintergreen_surface0;
+    color: @wintergreen_text;
+}
+
+infobar.info {
+    background-color: alpha(@wintergreen_blue, 0.2);
+}
+
+infobar.warning {
+    background-color: alpha(@wintergreen_yellow, 0.2);
+}
+
+infobar.error {
+    background-color: alpha(@wintergreen_red, 0.2);
+}

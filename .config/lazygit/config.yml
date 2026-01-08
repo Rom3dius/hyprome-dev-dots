@@ -6,6 +6,29 @@ gui:
   showIcons: true
   showRandomTip: false
   sidePanelWidth: 0.15 # From 0 to 1
+  # Wintergreen Theme
+  theme:
+    activeBorderColor:
+      - "#73c5b8"
+      - bold
+    inactiveBorderColor:
+      - "#495f75"
+    optionsTextColor:
+      - "#7da6d6"
+    selectedLineBgColor:
+      - "#2d3f52"
+    selectedRangeBgColor:
+      - "#364b62"
+    cherryPickedCommitBgColor:
+      - "#73c5b8"
+    cherryPickedCommitFgColor:
+      - "#1a2332"
+    unstagedChangesColor:
+      - "#d88a8a"
+    defaultFgColor:
+      - "#c8d5e3"
+    searchingActiveBorderColor:
+      - "#e6d89c"
 
 git:
   autoFetch: false

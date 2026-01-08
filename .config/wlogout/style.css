@@ -1,13 +1,13 @@
 /*
-          _                         _    
-__      _| | ___   __ _  ___  _   _| |_  
-\ \ /\ / / |/ _ \ / _` |/ _ \| | | | __| 
- \ V  V /| | (_) | (_| | (_) | |_| | |_  
-  \_/\_/ |_|\___/ \__, |\___/ \__,_|\__| 
-                  |___/                  
- 
-by Stephan Raabe (2024) 
------------------------------------------------------ 
+          _                         _
+__      _| | ___   __ _  ___  _   _| |_
+\ \ /\ / / |/ _ \ / _` |/ _ \| | | | __|
+ \ V  V /| | (_) | (_| | (_) | |_| | |_
+  \_/\_/ |_|\___/ \__, |\___/ \__,_|\__|
+                  |___/
+
+Wintergreen Theme
+-----------------------------------------------------
 */
 
 * {
@@ -18,27 +18,29 @@ by Stephan Raabe (2024)
 }
 
 window {
-	background-color: rgba(12, 12, 12, 0.8);
+	background-color: rgba(26, 35, 50, 0.9);
 }
 
 button {
-	color: #FFFFFF;
+	color: #c8d5e3;
     font-size:20px;
 
     background-repeat: no-repeat;
 	background-position: center;
 	background-size: 25%;
+	background-color: rgba(36, 51, 66, 0.6);
 	border-style: solid;
-	border: 3px solid #FFFFFF;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+	border: 3px solid #73c5b8;
+    box-shadow: 0 4px 8px 0 rgba(15, 20, 25, 0.4), 0 6px 20px 0 rgba(15, 20, 25, 0.3);
 
 }
 
 button:focus,
 button:active,
 button:hover {
-    color: #FFFFFF;
-	border: 3px solid #FFFFFF;
+    color: #c8d5e3;
+	background-color: rgba(45, 63, 82, 0.8);
+	border: 3px solid #99e0d9;
 }
 
 /* 

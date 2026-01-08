@@ -36,7 +36,7 @@ fi
 
 # setup zsh and zsh plugins
 export ZSH="$HOME/.oh-my-zsh"
-ZSH_THEME="agnoster"
+ZSH_THEME=""  # Using Starship prompt instead
 
 plugins=(
   git
@@ -181,4 +181,9 @@ if [ -z "$container" ] && [ -z "$NO_DISTROBOX_AUTOENTER" ] && [ -n "$PS1" ]; the
 
   echo "⚠️ Container '$CONTAINER_NAME' is not running yet."
   echo "  Try running `reset-dev` and restarting your shell."
+fi
+
+# ─────────────────────────── Starship prompt ──────────────────────────────────
+if command -v starship &>/dev/null; then
+  eval "$(starship init zsh)"
 fi

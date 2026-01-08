@@ -1,32 +1,34 @@
 /*
-#  ____        __ _  
-# |  _ \ ___  / _(_) 
-# | |_) / _ \| |_| | 
-# |  _ < (_) |  _| | 
-# |_| \_\___/|_| |_| 
-#                    
-# ----------------------------------------------------- 
+#  ____        __ _
+# |  _ \ ___  / _(_)
+# | |_) / _ \| |_| |
+# |  _ < (_) |  _| |
+# |_| \_\___/|_| |_|
+#
+# Wintergreen Theme
+# -----------------------------------------------------
 */
 
 * {
-    background: rgba(0,0,1,0.5);
-    foreground: #FFFFFF;
-    color0:     #2c2b2b;
-    color1:     #2c2b2b;
-    color2:     #2c2b2b;
-    color3:     #2c2b2b;
-    color4:     #2c2b2b;
-    color5:     #2c2b2b;
-    color6:     #2c2b2b;
-    color7:     #2c2b2b;
-    color8:     #2c2b2b;
-    color9:     #2c2b2b;
-    color10:    #2c2b2b;
-    color11:    #2c2b2b;
-    color12:    #2c2b2b;
-    color13:    #2c2b2b;
-    color14:    #2c2b2b;
-    color15:    #2c2b2b;
+    /* Wintergreen Theme Colors */
+    background:      rgba(26,35,50,0.9);
+    foreground:      #c8d5e3;
+    border-color:    #73c5b8;
+    selection:       #2d3f52;
+    urgent:          #d88a8a;
+
+    /* Surface colors */
+    surface0:        #243342;
+    surface1:        #2d3f52;
+    surface2:        #364b62;
+
+    /* Text colors */
+    text:            #c8d5e3;
+    subtext:         #a8b8c7;
+    overlay:         #495f75;
+
+    /* Accent */
+    accent:          #73c5b8;
 }
 
 * { border-width: 3px; }
@@ -57,10 +59,10 @@ window {
     y-offset:                     65px;
     spacing:                      0px;
     padding:                      0px;
-    margin:                       0px; 
-    color:                        #FFFFFF;
+    margin:                       0px;
+    color:                        @foreground;
     border:                       @border-width;
-    border-color:                 #FFFFFF;
+    border-color:                 @accent;
     cursor:                       "default";
     transparency:                 "real";
     location:                     north;
@@ -150,7 +152,7 @@ button {
 }
 
 button selected {
-    background-color:             @color11;
+    background-color:             @selection;
     text-color:                   @foreground;
 }
 
@@ -200,7 +202,7 @@ element normal.active {
 }
 
 element selected.normal {
-    background-color:            @color11;
+    background-color:            @selection;
     text-color:                  @foreground;
 }
 
