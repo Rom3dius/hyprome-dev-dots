@@ -59,20 +59,26 @@ on = "D"
 run = "remove --permanently"
 desc = "Delete permanently"
 
+# Yank (copy) files
+[[mgr.prepend_keymap]]
+on = "y"
+run = "yank"
+desc = "Yank (copy)"
+
 # Copy path to clipboard
 [[mgr.prepend_keymap]]
-on = ["y", "p"]
+on = ["Y", "p"]
 run = 'shell "echo -n $1 | wl-copy" --confirm'
 desc = "Copy path"
 
 # Copy filename to clipboard
 [[mgr.prepend_keymap]]
-on = ["y", "n"]
+on = ["Y", "n"]
 run = 'shell "basename $1 | tr -d \\n | wl-copy" --confirm'
 desc = "Copy filename"
 
 # Copy directory path
 [[mgr.prepend_keymap]]
-on = ["y", "d"]
+on = ["Y", "d"]
 run = 'shell "dirname $1 | tr -d \\n | wl-copy" --confirm'
 desc = "Copy dir path"
