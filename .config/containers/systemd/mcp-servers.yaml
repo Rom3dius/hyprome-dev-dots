@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mcp-servers
+spec:
+  containers:
+    - name: ddg
+      image: docker.io/library/ddg-mcp-custom:latest
+      ports:
+        - containerPort: 8000
+          hostPort: 8090
+          protocol: TCP
+    # Add more MCP servers here:
+    # - name: fetch
+    #   image: localhost/fetch-mcp-custom:latest
+    #   ports:
+    #     - containerPort: 8000
+    #       hostPort: 8091

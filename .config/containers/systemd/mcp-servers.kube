@@ -1,0 +1,13 @@
+[Unit]
+Description=MCP Servers
+
+[Kube]
+Yaml=mcp-servers.yaml
+AutoUpdate=local
+
+[Service]
+Restart=on-failure
+RestartSec=5
+
+[Install]
+# No WantedBy — pulled in by llama-server via BindsTo
