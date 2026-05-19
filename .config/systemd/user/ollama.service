@@ -1,0 +1,25 @@
+[Unit]
+Description=Ollama inference server (in hyprome-dev distrobox)
+After=network-online.target
+Wants=network-online.target
+Conflicts=llama-server.service
+
+[Service]
+Type=simple
+Environment=OLLAMA_HOST=0.0.0.0:11434
+Environment=OLLAMA_KEEP_ALIVE=5m
+Environment=OLLAMA_FLASH_ATTENTION=1
+Environment=OLLAMA_KV_CACHE_TYPE=q8_0
+Environment=OLLAMA_MAX_LOADED_MODELS=1
+Environment=OLLAMA_VULKAN=1
+EnvironmentFile=-%h/.config/ollama/env
+
+ExecStart=/usr/bin/distrobox-enter hyprome-dev-distrobox-quadlet -- \
+  /usr/local/bin/ollama serve
+
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+
+[Install]
+WantedBy=default.target
