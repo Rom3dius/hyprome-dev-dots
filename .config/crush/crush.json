@@ -1,0 +1,61 @@
+{
+  "$schema": "https://charm.land/crush.json",
+  "providers": {
+    "ollama": {
+      "name": "Ollama (local, port 11434)",
+      "base_url": "http://localhost:11434/v1/",
+      "type": "openai-compat",
+      "models": [
+        {
+          "name": "Qwen3.6 35B-A3B (MoE, 3B active, library)",
+          "id": "qwen3.6:35b",
+          "context_window": 262144,
+          "default_max_tokens": 16384
+        },
+        {
+          "name": "Qwen3 4B (small / summarization)",
+          "id": "qwen3:4b",
+          "context_window": 32768,
+          "default_max_tokens": 2048
+        },
+        {
+          "name": "TinyLlama 1.1B (smoke test)",
+          "id": "tinyllama:latest",
+          "context_window": 2048,
+          "default_max_tokens": 512
+        }
+      ]
+    },
+    "llamacpp": {
+      "name": "llama.cpp (manual start; gemma)",
+      "base_url": "http://localhost:1337/v1/",
+      "type": "openai-compat",
+      "models": [
+        {
+          "name": "Gemma 4 26B-A4B Heretic (Q8_0) — `systemctl --user start llama-server.service`",
+          "id": "gemma-4-26B-A4B-it-heretic.Q8_0.gguf",
+          "context_window": 131072,
+          "default_max_tokens": 8192
+        }
+      ]
+    }
+  },
+  "models": {
+    "large": {
+      "provider": "ollama",
+      "model": "qwen3.6:35b",
+      "temperature": 0.2,
+      "top_p": 0.9,
+      "max_tokens": 16384
+    },
+    "small": {
+      "provider": "ollama",
+      "model": "qwen3:4b",
+      "temperature": 0.3,
+      "max_tokens": 2048
+    }
+  },
+  "permissions": {
+    "allowed_tools": ["view", "ls", "glob", "grep", "edit"]
+  }
+}

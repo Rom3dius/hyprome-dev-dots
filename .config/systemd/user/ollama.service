@@ -2,7 +2,6 @@
 Description=Ollama inference server (in hyprome-dev distrobox)
 After=network-online.target
 Wants=network-online.target
-Conflicts=llama-server.service
 
 [Service]
 Type=simple
