@@ -159,29 +159,7 @@ if [[ -d "$HOME/.extras" ]]; then
   done
 fi
 
-# execute commands on the host from within the container
-host() {
-  distrobox-host-exec env NO_DISTROBOX_AUTOENTER=1 "$@"
-}
-
-reset-dev() {
-  host systemctl --user start reset-hyprome.service
-}
-
-if [ -z "$container" ] && [ -z "$NO_DISTROBOX_AUTOENTER" ] && [ -n "$PS1" ]; then
-  CONTAINER_NAME="hyprome-dev-distrobox-quadlet"
-
-  if podman container exists "$CONTAINER_NAME"; then
-    if [ "$(podman inspect -f '{{.State.Running}}' "$CONTAINER_NAME" 2>/dev/null)" = "true" ]; then
-      exec distrobox enter "$CONTAINER_NAME"
-    fi
-  fi
-
-  fastfetch -c "$HOME/.config/fastfetch/config-compact.jsonc"
-
-  echo "⚠️ Container '$CONTAINER_NAME' is not running yet."
-  echo "  Try running `reset-dev` and restarting your shell."
-fi
+fastfetch -c "$HOME/.config/fastfetch/config-compact.jsonc"
 
 # ─────────────────────────── Starship prompt ──────────────────────────────────
 if command -v starship &>/dev/null; then
