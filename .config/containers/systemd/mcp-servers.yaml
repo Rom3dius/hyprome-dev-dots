@@ -10,9 +10,48 @@ spec:
         - containerPort: 8000
           hostPort: 8090
           protocol: TCP
-    # Add more MCP servers here:
-    # - name: fetch
-    #   image: localhost/fetch-mcp-custom:latest
-    #   ports:
-    #     - containerPort: 8000
-    #       hostPort: 8091
+
+    - name: context7
+      image: docker.io/mcp/context7:latest
+      ports:
+        - containerPort: 8080
+          hostPort: 8092
+          protocol: TCP
+
+    - name: neo4j
+      image: docker.io/library/neo4j:5-community
+      env:
+        - name: NEO4J_AUTH
+          value: neo4j/mcp-memory
+      ports:
+        - containerPort: 7474
+          hostPort: 7474
+          protocol: TCP
+        - containerPort: 7687
+          hostPort: 7687
+          protocol: TCP
+      volumeMounts:
+        - name: neo4j-data
+          mountPath: /data
+
+    - name: memory
+      image: docker.io/mcp/neo4j-memory:latest
+      env:
+        - name: NEO4J_TRANSPORT
+          value: http
+        - name: NEO4J_URL
+          value: bolt://localhost:7687
+        - name: NEO4J_PASSWORD
+          value: mcp-memory
+        - name: NEO4J_MCP_SERVER_PORT
+          value: "8001"
+      ports:
+        - containerPort: 8001
+          hostPort: 8093
+          protocol: TCP
+
+  volumes:
+    - name: neo4j-data
+      hostPath:
+        path: /home/romedius/.local/share/neo4j-mcp
+        type: DirectoryOrCreate

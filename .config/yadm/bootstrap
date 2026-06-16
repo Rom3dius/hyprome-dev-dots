@@ -7,6 +7,9 @@ if command -v systemctl &>/dev/null && systemctl --user --version &>/dev/null; t
   systemctl --user daemon-reload
   systemctl --user enable rclone-zettelkasten.service
   systemctl --user start rclone-zettelkasten.service
+  # llama-server + mcp-servers: manual only (GPU-heavy)
+  # Start with: systemctl --user start llama-server
+  # (mcp-servers starts/stops automatically with llama-server)
 fi
 
 # Install the font
