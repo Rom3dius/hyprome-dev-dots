@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Run nvim inside the nvim-editor container.
+# The home directory and current project directory are mounted,
+# so all state (lazy.nvim cache, mason installs, etc.) persists between sessions.
+set -euo pipefail
+
+SOCKET="/run/user/$(id -u)/podman/podman.sock"
+
+exec podman run --rm -it \
+    --name "nvim-$$" \
+    --network host \
+    --security-opt label=disable \
+    --userns keep-id \
+    -e "HOME=$HOME" \
+    -e "TERM=$TERM" \
+    -e "COLORTERM=${COLORTERM:-}" \
+    -e "CONTAINER_HOST=unix://$SOCKET" \
+    -v "$HOME:$HOME" \
+    -v "/tmp:/tmp" \
+    -v "$SOCKET:$SOCKET" \
+    -v "/etc/hosts:/etc/hosts:ro" \
+    -v "/etc/resolv.conf:/etc/resolv.conf:ro" \
+    --workdir "$(pwd)" \
+    localhost/nvim-editor:latest nvim "$@"

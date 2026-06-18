@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Forward podman calls to the host via distrobox-host-exec.
+# This shim is used when running inside the nvim-editor container.
+exec distrobox-host-exec podman "$@"

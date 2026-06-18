@@ -1,0 +1,35 @@
+[Unit]
+Description=Neovim editor container
+
+[Container]
+Annotation=run.oci.keep_original_groups=1
+ContainerName=nvim-editor
+Environment=SHELL=%s
+Environment=HOME=%h
+Environment=container=podman
+Environment=DOCKER_HOST=unix://%t/podman/podman.sock
+Exec=--verbose --name %u --user %U --group %G --home %h --init "0" --nvidia "0" -- " "
+Image=localhost/nvim-editor:latest
+HostName=nvim.%l
+Label=manager=distrobox
+Network=host
+PodmanArgs=--entrypoint /usr/bin/entrypoint
+PodmanArgs=--ipc host
+PodmanArgs=--security-opt label=disable
+PodmanArgs=--security-opt apparmor=unconfined
+Ulimit=host
+User=root:root
+UserNS=keep-id
+Volume=/tmp:/tmp:rslave
+Volume=/usr/bin/distrobox-init:/usr/bin/entrypoint:ro
+Volume=/usr/bin/distrobox-export:/usr/bin/distrobox-export:ro
+Volume=/usr/bin/distrobox-host-exec:/usr/bin/distrobox-host-exec:ro
+Volume=%h:%h:rslave
+Volume=/var/home/%u:/var/home/%u:rslave
+Volume=%t:%t:rslave
+Volume=%t/podman/podman.sock:%t/podman/podman.sock
+Volume=/etc/hosts:/etc/hosts:ro
+Volume=/etc/resolv.conf:/etc/resolv.conf:ro
+
+[Service]
+Restart=always
