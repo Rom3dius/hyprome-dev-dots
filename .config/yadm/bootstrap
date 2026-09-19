@@ -25,3 +25,37 @@ if [ ! -f ~/.config/nvim/init.lua ]; then
   echo "Installing NeoVim config"
   git clone https://github.com/Rom3dius/lazyvim-romedius ~/.config/nvim
 fi
+
+# Vendor caelestia-dots' desktop-shell components (caelestia's own CLI/manifest
+# system is Arch/AUR-only, so this replicates its documented manual-install
+# mapping: https://github.com/caelestia-dots/caelestia/blob/main/manifest.toml).
+# Only components we don't already track ourselves in this repo are copied —
+# notably NOT fastfetch, which we maintain our own config for. This overwrites
+# the destination every run, so customize via ~/.config/caelestia/hypr-vars.lua,
+# ~/.config/caelestia/hypr-user.lua and ~/.config/caelestia/user-config.fish
+# instead of editing the vendored files directly.
+CAELESTIA_CACHE="$HOME/.cache/caelestia-dots"
+echo "Syncing caelestia-dots components..."
+if [ -d "$CAELESTIA_CACHE/.git" ]; then
+  git -C "$CAELESTIA_CACHE" pull --ff-only
+else
+  rm -rf "$CAELESTIA_CACHE"
+  git clone --depth=1 https://github.com/caelestia-dots/caelestia.git "$CAELESTIA_CACHE"
+fi
+
+mkdir -p ~/.config
+for dir in fish foot btop micro thunar; do
+  rm -rf "$HOME/.config/${dir}"
+  cp -r "$CAELESTIA_CACHE/${dir}" "$HOME/.config/${dir}"
+done
+cp "$CAELESTIA_CACHE/starship.toml" ~/.config/starship.toml
+
+# hypr/ needs special handling: scheme/current.lua is a runtime state file
+# (the active colour scheme, written by `caelestia scheme set`), not part of
+# caelestia's static config — a plain overwrite would revert the theme to
+# default on every yadm bootstrap re-run. rsync --delete syncs everything
+# else while leaving an existing current.lua alone.
+mkdir -p ~/.config/hypr
+rsync -a --delete --exclude='scheme/current.lua' "$CAELESTIA_CACHE/hypr/" ~/.config/hypr/
+
+mkdir -p ~/.local/state/caelestia
