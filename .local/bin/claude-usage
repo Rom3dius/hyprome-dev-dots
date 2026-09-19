@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+"""Check Claude Code rate limit quota via a single cheap API probe."""
+
+import json
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+COLOUR = sys.stdout.isatty()
+
+def c(code, text):
+    return f"\033[{code}m{text}\033[0m" if COLOUR else text
+
+BOLD   = lambda t: c("1", t)
+DIM    = lambda t: c("2", t)
+GREEN  = lambda t: c("92", t)
+YELLOW = lambda t: c("93", t)
+RED    = lambda t: c("91", t)
+CYAN   = lambda t: c("96", t)
+GREY   = lambda t: c("90", t)
+
+
+def get_token():
+    creds = Path.home() / ".claude" / ".credentials.json"
+    try:
+        d = json.loads(creds.read_text())
+        return d["claudeAiOauth"]["accessToken"]
+    except Exception as e:
+        print(f"Cannot read credentials: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def load_cache():
+    try:
+        d = json.loads(CACHE_PATH.read_text())
+        if time.time() - d.get("ts", 0) < CACHE_TTL_SECONDS:
+            return d.get("headers", {})
+    except Exception:
+        pass
+    return None
+
+
+def save_cache(headers: dict):
+    try:
+        CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        CACHE_PATH.write_text(json.dumps({"ts": time.time(), "headers": headers}))
+    except Exception:
+        pass
+
+
+def probe_api(token):
+    """Send a minimal haiku request and capture response headers."""
+    result = subprocess.run(
+        [
+            "curl", "-si",
+            "-H", f"Authorization: Bearer {token}",
+            "-H", "anthropic-version: 2023-06-01",
+            "-H", "anthropic-client-platform: claude_cli",
+            "-H", "Content-Type: application/json",
+            "-d", json.dumps({
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 1,
+                "messages": [{"role": "user", "content": "hi"}],
+            }),
+            "https://api.anthropic.com/v1/messages",
+        ],
+        capture_output=True, text=True, timeout=15,
+    )
+    headers = {}
+    for line in result.stdout.splitlines():
+        if ":" in line and not line.startswith("{"):
+            k, _, v = line.partition(":")
+            headers[k.strip().lower()] = v.strip()
+    return headers
+
+
+def pct_bar(utilization: float, width: int = 30) -> str:
+    pct = min(utilization, 1.0)
+    filled = round(pct * width)
+    bar = "█" * filled + "░" * (width - filled)
+    label = f"{pct * 100:.0f}%"
+    colour = RED if pct >= 0.85 else (YELLOW if pct >= 0.60 else GREEN)
+    return f"[{colour(bar)}] {colour(label)}"
+
+
+def time_until(unix_ts: int) -> str:
+    delta = unix_ts - int(datetime.now(timezone.utc).timestamp())
+    if delta <= 0:
+        return "now"
+    h, rem = divmod(delta, 3600)
+    m = rem // 60
+    if h:
+        return f"{h}h {m}m"
+    return f"{m}m"
+
+
+def status_label(status: str) -> str:
+    if status == "allowed":
+        return GREEN("allowed")
+    if status == "rejected":
+        return RED("blocked")
+    return YELLOW(status)
+
+
+def main():
+    token = get_token()
+    headers = probe_api(token)
+
+    def h(key):
+        return headers.get(f"anthropic-ratelimit-{key}", "")
+
+    five_h_util   = float(h("unified-5h-utilization") or 0)
+    five_h_reset  = int(h("unified-5h-reset") or 0)
+    seven_d_util  = float(h("unified-7d-utilization") or 0)
+    seven_d_reset = int(h("unified-7d-reset") or 0)
+    overall       = h("unified-status") or "unknown"
+    claim         = h("unified-representative-claim") or ""
+
+    if not h("unified-5h-utilization"):
+        print("No rate limit headers received. Check your credentials.", file=sys.stderr)
+        sys.exit(1)
+
+    W = 50
+    print()
+    print(BOLD(CYAN("  Claude Code Quota")))
+    print(GREY("  " + "─" * (W - 2)))
+    print(f"  Status  {status_label(overall)}")
+    print()
+
+    # 5-hour session window
+    five_h_remaining = f"{(1 - five_h_util) * 100:.0f}% remaining"
+    reset_in_5h = time_until(five_h_reset) if five_h_reset else "?"
+    print(BOLD("  Session limit") + GREY("  (resets every 5h)"))
+    print(f"  {pct_bar(five_h_util)}")
+    print(f"  {GREY('used')} {five_h_util * 100:.0f}%  ·  {GREEN(five_h_remaining)}  ·  {GREY('resets in')} {reset_in_5h}")
+    print()
+
+    # 7-day weekly window
+    seven_d_remaining = f"{(1 - seven_d_util) * 100:.0f}% remaining"
+    reset_in_7d = time_until(seven_d_reset) if seven_d_reset else "?"
+    print(BOLD("  Weekly limit") + GREY("  (7 days)"))
+    print(f"  {pct_bar(seven_d_util)}")
+    print(f"  {GREY('used')} {seven_d_util * 100:.0f}%  ·  {GREEN(seven_d_remaining)}  ·  {GREY('resets in')} {reset_in_7d}")
+
+    if claim:
+        print()
+        print(GREY(f"  binding window: {claim.replace('_', ' ')}"))
+
+    print()
+
+
+if __name__ == "__main__":
+    main()
