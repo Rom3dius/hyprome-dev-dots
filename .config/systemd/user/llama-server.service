@@ -7,12 +7,17 @@ After=mcp-servers.service
 
 [Service]
 Type=simple
-Environment=MODEL=/home/romedius/Documents/models/gemma-4-26B-A4B-it-heretic.Q8_0.gguf
+Environment=MODEL=/home/romedius/Documents/models/qwen3.8-27b-UD-Q4_K_XL.gguf
 Environment=PORT=1337
 Environment=CONTEXT=131072
 Environment=GPU_LAYERS=999
 EnvironmentFile=-%h/.config/llama-server/env
 
+# Vulkan backend (RADV) on the 890M iGPU - single device, no --split-mode
+# needed. -fa/q4_0 KV cache and --spec-type draft-mtp mirror the flags
+# proven out on airig-01 (see AIRig/roles/llamacpp): this GGUF ships a
+# self-contained MTP draft head, so speculative decoding is a free win
+# with no separate draft model to manage.
 ExecStart=/usr/bin/distrobox-enter hyprome-dev-distrobox-quadlet -- \
   /home/linuxbrew/.linuxbrew/bin/llama-server \
   --model ${MODEL} \
@@ -20,7 +25,11 @@ ExecStart=/usr/bin/distrobox-enter hyprome-dev-distrobox-quadlet -- \
   --port ${PORT} \
   --webui-mcp-proxy \
   --ctx-size ${CONTEXT} \
-  --n-gpu-layers ${GPU_LAYERS}
+  --n-gpu-layers ${GPU_LAYERS} \
+  -fa on \
+  --cache-type-k q4_0 \
+  --cache-type-v q4_0 \
+  --spec-type draft-mtp
 
 Restart=on-failure
 RestartSec=10
