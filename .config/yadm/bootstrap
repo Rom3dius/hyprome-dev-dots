@@ -51,12 +51,21 @@ for dir in btop micro; do
 done
 
 # hypr/ needs special handling: scheme/current.lua is a runtime state file
-# (the active colour scheme, written by `caelestia scheme set`), not part of
-# caelestia's static config — a plain overwrite would revert the theme to
-# default on every yadm bootstrap re-run. rsync --delete syncs everything
-# else while leaving an existing current.lua alone.
+# (the active colour scheme, written by `caelestia scheme set`) and
+# monitors.lua is machine-specific state (written by nwg-displays) — neither
+# is part of caelestia's static config, so a plain overwrite would revert
+# the theme / clobber the monitor layout on every yadm bootstrap re-run.
+# rsync --delete syncs everything else while leaving those two alone.
 mkdir -p ~/.config/hypr
-rsync -a --delete --exclude='scheme/current.lua' "$CAELESTIA_CACHE/hypr/" ~/.config/hypr/
+rsync -a --delete --exclude='scheme/current.lua' --exclude='monitors.lua' "$CAELESTIA_CACHE/hypr/" ~/.config/hypr/
+
+# Seed monitors.lua on first run only — hypr-user.lua does `require("monitors")`,
+# which errors out if the file doesn't exist at all (unlike scheme/current.lua,
+# caelestia's hyprland.lua has no maybe_copy-style fallback for it).
+# monitors.lua.reference is yadm-tracked at the repo root ($HOME).
+if [ ! -f ~/.config/hypr/monitors.lua ] && [ -f ~/monitors.lua.reference ]; then
+  cp ~/monitors.lua.reference ~/.config/hypr/monitors.lua
+fi
 
 mkdir -p ~/.local/state/caelestia
 

@@ -1,28 +1,13 @@
 -- Loaded last by caelestia's hypr/hyprland.lua, after all its default config.
--- Monitor layout ported from the old (pre-caelestia) monitors.conf /
--- workspaces.conf on the hyprome-dev-dots `hyprome-backup` branch.
-
--- Laptop display
-hl.monitor({
-	output = "eDP-1",
-	mode = "2880x1920@120.0",
-	position = "0x0",
-	scale = 2.0,
-})
-
--- Dell docking station (ASUS ROG PG27QRT1B, dual output)
-hl.monitor({
-	output = "desc:ASR PG27QRT1B H9VL0A006245",
-	mode = "2560x1440@120",
-	position = "1440x0",
-	scale = 1.0,
-})
-hl.monitor({
-	output = "desc:ASR PG27QRT1B H9VL0A006263",
-	mode = "2560x1440@120",
-	position = "4000x0",
-	scale = 1.0,
-})
+-- Monitor layout lives in ~/.config/hypr/monitors.lua (NOT this file, and
+-- NOT tracked by yadm/caelestia sync — see the rsync --exclude in
+-- .config/yadm/bootstrap) so nwg-displays can write to it directly: run
+-- `nwg-displays` (installed via hyprome's recipe.yml) to adjust
+-- resolution/refresh-rate/position/scale through a GUI instead of hand-
+-- editing Lua. It generates real hl.monitor({...}) blocks matching this
+-- config's syntax. A recovery copy lives at monitors.lua.reference in
+-- hyprome-dev-dots' repo root, in case this machine is ever reprovisioned.
+require("monitors")
 
 -- NOTE: the old config also pinned default workspaces per monitor
 -- (workspace 1/2 on the dock outputs, 3 on eDP-1). caelestia doesn't
