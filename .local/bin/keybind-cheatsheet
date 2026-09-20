@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Searchable keybind cheatsheet: parses KEYBINDS.md's tables into
+# "BIND — Action" lines and feeds them to fuzzel for fuzzy search.
+# Selecting an entry copies the bind to the clipboard.
+set -euo pipefail
+
+KEYBINDS_FILE="$HOME/KEYBINDS.md"
+
+entries=$(awk -F'|' '
+  /^\| `/ {
+    gsub(/^[ \t]+|[ \t]+$/, "", $2); gsub(/^[ \t]+|[ \t]+$/, "", $3)
+    gsub(/`/, "", $2)
+    gsub(/\*\*/, "", $3)
+    printf "%-28s %s\n", $2, $3
+  }
+' "$KEYBINDS_FILE")
+
+selected=$(printf '%s\n' "$entries" | fuzzel --dmenu --prompt="Keybinds> " --lines=20 --width=80)
+
+[ -n "$selected" ] || exit 0
+
+bind="$(printf '%s' "$selected" | sed -E 's/^([^ ].*[^ ]) {2,}.*/\1/')"
+printf '%s' "$bind" | wl-copy
+notify-send -a "Keybinds" "Copied" "$bind"
