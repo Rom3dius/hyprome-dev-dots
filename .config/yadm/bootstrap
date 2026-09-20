@@ -29,11 +29,12 @@ fi
 # Vendor caelestia-dots' desktop-shell components (caelestia's own CLI/manifest
 # system is Arch/AUR-only, so this replicates its documented manual-install
 # mapping: https://github.com/caelestia-dots/caelestia/blob/main/manifest.toml).
-# Only components we don't already track ourselves in this repo are copied —
-# notably NOT fastfetch, which we maintain our own config for. This overwrites
-# the destination every run, so customize via ~/.config/caelestia/hypr-vars.lua,
-# ~/.config/caelestia/hypr-user.lua and ~/.config/caelestia/user-config.fish
-# instead of editing the vendored files directly.
+# Only components we don't already track ourselves in this repo, and actually
+# want, are copied — NOT fastfetch (own config), NOT fish/foot (kept zsh +
+# kitty instead), NOT thunar (kept GNOME's Nautilus instead), NOT
+# starship.toml (own Wintergreen-themed prompt). This overwrites the
+# destination every run, so customize via ~/.config/caelestia/hypr-vars.lua
+# and ~/.config/caelestia/hypr-user.lua instead of editing vendored files.
 CAELESTIA_CACHE="$HOME/.cache/caelestia-dots"
 echo "Syncing caelestia-dots components..."
 if [ -d "$CAELESTIA_CACHE/.git" ]; then
@@ -44,11 +45,10 @@ else
 fi
 
 mkdir -p ~/.config
-for dir in fish foot btop micro thunar; do
+for dir in btop micro; do
   rm -rf "$HOME/.config/${dir}"
   cp -r "$CAELESTIA_CACHE/${dir}" "$HOME/.config/${dir}"
 done
-cp "$CAELESTIA_CACHE/starship.toml" ~/.config/starship.toml
 
 # hypr/ needs special handling: scheme/current.lua is a runtime state file
 # (the active colour scheme, written by `caelestia scheme set`), not part of
@@ -59,3 +59,21 @@ mkdir -p ~/.config/hypr
 rsync -a --delete --exclude='scheme/current.lua' "$CAELESTIA_CACHE/hypr/" ~/.config/hypr/
 
 mkdir -p ~/.local/state/caelestia
+
+# Initialize caelestia's wallpaper + colour scheme state (normally done by
+# caelestia-cli's own manifest post_install hooks, which we bypass by
+# vendoring files manually instead of using their installer). Without this,
+# first login is a blank, unthemed shell until someone runs these manually.
+if [ ! -f ~/.local/state/caelestia/wallpaper/path.txt ] && command -v caelestia &>/dev/null; then
+  echo "Initializing caelestia wallpaper + scheme..."
+  mkdir -p ~/Pictures/Wallpapers
+  if [ ! -f ~/Pictures/Wallpapers/wintergreen.png ] && command -v magick &>/dev/null; then
+    magick -size 2880x1920 gradient:'#1a2332-#0f1419' ~/Pictures/Wallpapers/wintergreen.png
+  fi
+  if [ -f ~/Pictures/Wallpapers/wintergreen.png ]; then
+    caelestia wallpaper -n -f ~/Pictures/Wallpapers/wintergreen.png
+  fi
+  # No "wintergreen" scheme exists in caelestia-cli's built-in set (see
+  # THEMING.md) — darkgreen is the closest built-in match.
+  caelestia scheme set -n darkgreen
+fi
