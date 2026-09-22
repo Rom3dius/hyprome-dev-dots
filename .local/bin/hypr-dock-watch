@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Keeps the built-in laptop panel (eDP-1) disabled whenever any other real
+# output is connected, and restores it once the last external monitor goes
+# away. Generic by monitor count/name (not tied to a specific dock's
+# connector names or EDID), so it keeps working if this laptop ends up
+# docked into a different monitor/dock setup.
+#
+# Deliberately independent of ~/.config/hypr/monitors.lua, which
+# nwg-displays regenerates wholesale on every GUI edit -- this only ever
+# toggles eDP-1 and never touches DP-*, so nwg-displays stays free to manage
+# layout/mode for whatever external monitors are plugged in.
+#
+# Runs under hypr-dock-watch.service (PartOf=graphical-session.target), not
+# a Hyprland exec-once/hl.on autostart, so it gets proper supervision
+# (Restart=on-failure) and starts/stops with the session instead of being
+# an orphaned background process.
+set -euo pipefail
+
+SOCK="$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
+
+sync_edp() {
+    local external_count
+    external_count=$(hyprctl monitors -j | jq '[.[] | select(.name != "eDP-1" and .disabled == false)] | length')
+
+    if [ "$external_count" -gt 0 ]; then
+        hyprctl eval 'hl.monitor({output="eDP-1", disabled=true})' >/dev/null
+    else
+        hyprctl eval 'hl.monitor({output="eDP-1", mode="preferred", position="0x0", scale=1})' >/dev/null
+    fi
+}
+
+# Cover the case where this starts while already docked.
+sync_edp
+
+socat -U - UNIX-CONNECT:"$SOCK" | while IFS= read -r line; do
+    case "$line" in
+        monitoraddedv2*|monitorremovedv2*)
+            # Let Hyprland finish settling the output list before re-reading it.
+            sleep 0.5
+            sync_edp
+            ;;
+    esac
+done
