@@ -73,17 +73,14 @@ mkdir -p ~/.local/state/caelestia
 # caelestia-cli's own manifest post_install hooks, which we bypass by
 # vendoring files manually instead of using their installer). Without this,
 # first login is a blank, unthemed shell until someone runs these manually.
-# Uses the same wallpaper as the SDDM login theme (hyprome repo), baked into
-# the image at /usr/share/sddm/themes/sddm-hyprome-theme/Backgrounds/ — no
-# need to duplicate the image into this repo, just copy it out at bootstrap
-# time so login and desktop match.
-SDDM_WALLPAPER="/usr/share/sddm/themes/sddm-hyprome-theme/Backgrounds/pine-wallpaper.jpg"
+# Wallpaper is yadm-tracked directly at Pictures/Wallpapers/ (unlike the old
+# pine-wallpaper.jpg, this one isn't baked into the hyprome image, so it has
+# to live in this repo to be reproducible on a fresh install).
+DEFAULT_WALLPAPER="$HOME/Pictures/Wallpapers/axalp-ch-f18.jpg"
 if [ ! -f ~/.local/state/caelestia/wallpaper/path.txt ] && command -v caelestia &>/dev/null; then
   echo "Initializing caelestia wallpaper + scheme..."
-  mkdir -p ~/Pictures/Wallpapers
-  if [ -f "$SDDM_WALLPAPER" ]; then
-    cp "$SDDM_WALLPAPER" ~/Pictures/Wallpapers/pine-wallpaper.jpg
-    caelestia wallpaper -n -f ~/Pictures/Wallpapers/pine-wallpaper.jpg
+  if [ -f "$DEFAULT_WALLPAPER" ]; then
+    caelestia wallpaper -n -f "$DEFAULT_WALLPAPER"
   fi
   # No "wintergreen" scheme exists in caelestia-cli's built-in set (see
   # THEMING.md) — darkgreen is the closest built-in match.
