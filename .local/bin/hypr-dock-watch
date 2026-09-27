@@ -83,13 +83,23 @@ session_active() {
     [ "$(loginctl show-session "$sid" -p Active --value 2>/dev/null)" = yes ]
 }
 
-# The only trustworthy check that eDP-1 is really scanning out: ask the
+# The only trustworthy check that the session is really scanning out: ask the
 # compositor for an actual frame. A connector with no CRTC never delivers one,
 # so grim just blocks until the timeout. Meaningless while the session is
 # inactive (no frames are produced by design), so only call it when active.
+#
+# Probes whichever output is currently enabled rather than eDP-1 by name:
+# while docked the panel is deliberately off, and probing it there reported
+# "no frame" every time and triggered a pointless reload on each VT switch.
 FRAME_PROBE="${XDG_RUNTIME_DIR:-/tmp}/hypr-dock-watch-frame.png"
+active_output() {
+    hyprctl monitors -j | jq -r '[.[] | select(.disabled == false) | .name][0] // empty'
+}
 output_has_frame() {
-    timeout 5 grim -o eDP-1 "$FRAME_PROBE" >/dev/null 2>&1
+    local out
+    out=$(active_output)
+    [ -n "$out" ] || return 1
+    timeout 5 grim -o "$out" "$FRAME_PROBE" >/dev/null 2>&1
     local rc=$?
     rm -f "$FRAME_PROBE"
     return $rc
@@ -169,6 +179,16 @@ restore_lock_if_needed() {
 # wallpaper down with it.
 ensure_shell() {
     shell_alive && return 0
+    # Starting the shell while the session does not own the VT yields a
+    # half-dead shell: Qt cannot create an EGL surface, so the bar comes up
+    # but the wallpaper layer renders solid black and never recovers -- a
+    # 28KB frame where a working desktop grabs 4.3MB. Restarting it once the
+    # session is active fixes it, so simply wait: this is polled, and
+    # vt_watch calls ensure_shell again the moment the VT comes back.
+    if ! session_active; then
+        log "shell is down but the session does not own the VT; deferring restart"
+        return 0
+    fi
     log "caelestia shell is not running -- restarting it"
     # No --unit=: a transient scope lingers while anything is still in it, so a
     # fixed name collides ("Unit ... was already loaded or has a fragment
@@ -254,13 +274,13 @@ vt_watch() {
                 continue
             fi
             if output_has_frame; then
-                log "session reactivated; eDP-1 is scanning out"
+                log "session reactivated; $(active_output) is scanning out"
             else
-                log "session reactivated but eDP-1 produced no frame -- reloading"
+                log "session reactivated but $(active_output) produced no frame -- reloading"
                 hyprctl reload >/dev/null 2>&1 || true
                 sleep 2
                 ensure_shell
-                output_has_frame || log "eDP-1 still produces no frame after reload"
+                output_has_frame || log "$(active_output) still produces no frame after reload"
             fi
         fi
         prev=$cur
