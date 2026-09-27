@@ -9,6 +9,12 @@
 -- hyprome-dev-dots' repo root, in case this machine is ever reprovisioned.
 require("monitors")
 
+-- Dock state for eDP-1, applied after monitors.lua so it overrides the
+-- eDP-1 block that file declares. Lives in ~/.config/caelestia/ rather than
+-- next to monitors.lua because bootstrap rsync --delete's ~/.config/hypr/
+-- from the upstream caelestia checkout, which would wipe it.
+dofile(os.getenv("HOME") .. "/.config/caelestia/dock-state.lua")
+
 -- NOTE: the old config also pinned default workspaces per monitor
 -- (workspace 1/2 on the dock outputs, 3 on eDP-1). caelestia doesn't
 -- document an `hl.workspace(...)` equivalent for this yet — if/when one

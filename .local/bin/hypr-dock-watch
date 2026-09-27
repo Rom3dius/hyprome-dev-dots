@@ -5,10 +5,16 @@
 # connector names or EDID), so it keeps working if this laptop ends up
 # docked into a different monitor/dock setup.
 #
-# Deliberately independent of ~/.config/hypr/monitors.lua, which
-# nwg-displays regenerates wholesale on every GUI edit -- this only ever
-# toggles eDP-1 and never touches DP-*, so nwg-displays stays free to manage
-# layout/mode for whatever external monitors are plugged in.
+# Only ever touches eDP-1, never DP-*, so nwg-displays stays free to manage
+# layout/mode for whatever external monitors are plugged in. The override is
+# written to a state file that ~/.config/hypr/dock-state.lua applies after
+# require("monitors"), so it survives nwg-displays regenerating monitors.lua.
+#
+# NOTE: `hyprctl eval 'hl.monitor{...}'` cannot be used to toggle an output on
+# Hyprland 0.56 -- it only records a rule (returns "ok" while changing
+# nothing) and monitor objects are read-only at runtime. A config reload is
+# the only thing that applies monitor rules, so both directions go through
+# state-file + `hyprctl reload`.
 #
 # Runs under hypr-dock-watch.service (PartOf=graphical-session.target), not
 # a Hyprland exec-once/hl.on autostart, so it gets proper supervision
@@ -17,16 +23,70 @@
 set -euo pipefail
 
 SOCK="$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/hypr-dock-watch"
+STATE="$STATE_DIR/edp"
+
+mkdir -p "$STATE_DIR"
+
+log() { printf '%s\n' "$*" >&2; }
+
+# Outputs that are not real displays and must never be mistaken for a dock
+# monitor. When the last real output goes away Hyprland synthesises FALLBACK
+# so the compositor still has somewhere to draw; counting that as "external"
+# is what used to pin eDP-1 off forever after an undock.
+is_virtual_output() {
+    case "$1" in
+        FALLBACK | HEADLESS-*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+external_count() {
+    local n=0 name
+    while IFS= read -r name; do
+        [ -n "$name" ] || continue
+        [ "$name" = "eDP-1" ] && continue
+        is_virtual_output "$name" && continue
+        n=$((n + 1))
+    done < <(hyprctl monitors -j | jq -r '.[] | select(.disabled == false) | .name')
+    printf '%s\n' "$n"
+}
+
+# "on" / "off" / "absent" -- the panel's actual current state.
+edp_state() {
+    hyprctl monitors all -j | jq -r '
+        map(select(.name == "eDP-1"))
+        | if length == 0 then "absent"
+          elif .[0].disabled then "off"
+          else "on" end'
+}
 
 sync_edp() {
-    local external_count
-    external_count=$(hyprctl monitors -j | jq '[.[] | select(.name != "eDP-1" and .disabled == false)] | length')
+    local want have
+    have=$(edp_state)
+    [ "$have" = "absent" ] && return 0
 
-    if [ "$external_count" -gt 0 ]; then
-        hyprctl eval 'hl.monitor({output="eDP-1", disabled=true})' >/dev/null
-    else
-        hyprctl eval 'hl.monitor({output="eDP-1", mode="preferred", position="0x0", scale=1})' >/dev/null
+    if [ "$(external_count)" -gt 0 ]; then want=off; else want=on; fi
+    [ "$have" = "$want" ] && return 0
+
+    if [ "$want" = off ]; then
+        printf 'off\n' >"$STATE"
+        hyprctl reload >/dev/null
+        return 0
     fi
+
+    # Re-enabling: drop the override and let monitors.lua declare eDP-1 again.
+    rm -f "$STATE"
+    hyprctl reload >/dev/null
+    sleep 1
+    [ "$(edp_state)" = on ] && return 0
+
+    # monitors.lua has no usable eDP-1 block (nwg-displays rewrote it while
+    # docked). Force the panel on explicitly rather than leave the user
+    # staring at a dead screen.
+    log "eDP-1 still off after reload; forcing explicit enable"
+    printf 'on\n' >"$STATE"
+    hyprctl reload >/dev/null
 }
 
 # Cover the case where this starts while already docked.
@@ -34,7 +94,7 @@ sync_edp
 
 socat -U - UNIX-CONNECT:"$SOCK" | while IFS= read -r line; do
     case "$line" in
-        monitoraddedv2*|monitorremovedv2*)
+        monitoraddedv2* | monitorremovedv2*)
             # Let Hyprland finish settling the output list before re-reading it.
             sleep 0.5
             sync_edp
