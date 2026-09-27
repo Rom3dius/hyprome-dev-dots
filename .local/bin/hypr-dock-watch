@@ -61,6 +61,28 @@ edp_state() {
           else "on" end'
 }
 
+# The caelestia shell (quickshell, process name "qs") cannot survive the
+# compositor having zero real outputs. The moment eDP-1 goes off with no
+# external monitor left, Qt loses its EGL surface -- its log shows "There are
+# no outputs - creating placeholder screen", "Layershell screen does not
+# correspond to a real screen", then "Could not create EGL surface (EGL error
+# 0x3000)" -- every layer surface closes and the process exits for good. It is
+# started once by a one-shot hl.on("hyprland.start") exec_cmd in caelestia's
+# execs.lua, so nothing ever brings it back: re-enabling the panel just
+# revealed a bare grey screen with no bar and no wallpaper.
+shell_alive() { pgrep -u "$(id -u)" -x qs >/dev/null 2>&1; }
+
+# Only ever starts the shell, never kills it, and `caelestia shell -d` is
+# idempotent (an existing instance makes it print "An instance of this
+# configuration is already running" and exit 0). So this is a no-op when the
+# shell is healthy, and it cannot race Hyprland's own autostart into running
+# two copies.
+ensure_shell() {
+    shell_alive && return 0
+    log "caelestia shell is not running -- restarting it"
+    caelestia shell -d >/dev/null 2>&1 || log "caelestia shell -d failed"
+}
+
 sync_edp() {
     local want have
     have=$(edp_state)
@@ -92,12 +114,27 @@ sync_edp() {
 # Cover the case where this starts while already docked.
 sync_edp
 
+# ...and the case where the shell is already dead when we come up: either this
+# service was restarted mid-session, or a previous undock killed the shell
+# before this fix was in place. At login Hyprland's own exec_cmd autostart
+# normally wins this race, so give it a few seconds before stepping in --
+# `caelestia shell -d` is idempotent either way, so the worst case is a no-op.
+for _ in 1 2 3 4 5; do
+    shell_alive && break
+    sleep 2
+done
+ensure_shell
+
 socat -U - UNIX-CONNECT:"$SOCK" | while IFS= read -r line; do
     case "$line" in
         monitoraddedv2* | monitorremovedv2*)
             # Let Hyprland finish settling the output list before re-reading it.
             sleep 0.5
             sync_edp
+            # Order matters: the panel has to be back before the shell is
+            # relaunched, otherwise quickshell binds its layer surfaces to
+            # FALLBACK and dies again.
+            ensure_shell
             ;;
     esac
 done
