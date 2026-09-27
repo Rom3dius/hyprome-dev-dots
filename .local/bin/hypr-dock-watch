@@ -106,6 +106,57 @@ output_has_frame() {
 # revealed a bare grey screen with no bar and no wallpaper.
 shell_alive() { pgrep -u "$(id -u)" -x qs >/dev/null 2>&1; }
 
+LOCK_STATE="$STATE_DIR/locked"
+
+# Asked of quickshell directly; the `caelestia` python wrapper shells out to
+# exactly this and turns a momentarily-absent shell into a traceback.
+shell_locked() {
+    [ "$(qs -c caelestia ipc call lock isLocked 2>/dev/null | tr -d '[:space:]')" = true ]
+}
+
+remember_lock_state() {
+    shell_alive || return 0
+    if shell_locked; then printf 'locked\n' >"$LOCK_STATE"
+    else printf 'unlocked\n' >"$LOCK_STATE"; fi
+}
+
+# If the session was locked when the shell died, the lockscreen died with it
+# and Hyprland is left on its crashed-lockscreen page ("you locked your screen
+# but the lockscreen app died"), which only hl.clear_crashed_lockscreen()
+# clears -- that is the "hyprland crashed screen" seen after an undock.
+# Clearing on its own would silently unlock the machine, so clear and
+# immediately re-lock with the freshly started shell: the session ends up
+# locked again, with a lockscreen that actually draws.
+restore_lock_if_needed() {
+    [ -f "$LOCK_STATE" ] || return 0
+    [ "$(cat "$LOCK_STATE" 2>/dev/null)" = locked ] || return 0
+    # A reading left over from an earlier session must never lock a fresh
+    # login, so only act on one taken in the last couple of minutes.
+    if [ -n "$(find "$LOCK_STATE" -mmin +2 2>/dev/null)" ]; then
+        log "ignoring stale lock state"
+        return 0
+    fi
+
+    local i
+    for i in $(seq 1 15); do shell_alive && break; sleep 1; done
+    if ! shell_alive; then
+        log "shell never came up; cannot restore the lock"
+        return 1
+    fi
+    sleep 2
+
+    log "session was locked when the shell died -- clearing crashed lockscreen and re-locking"
+    hyprctl eval 'hl.clear_crashed_lockscreen()' >/dev/null 2>&1 || true
+    sleep 1
+    qs -c caelestia ipc call lock lock >/dev/null 2>&1 || log "re-lock command failed"
+    sleep 2
+    if shell_locked; then
+        log "session re-locked"
+    else
+        log "WARNING: session is NOT locked after recovery -- lock it manually"
+    fi
+}
+
 # Only ever starts the shell, never kills it, and `caelestia shell -d` is
 # idempotent (an existing instance makes it print "An instance of this
 # configuration is already running" and exit 0). So this is a no-op when the
@@ -124,11 +175,18 @@ ensure_shell() {
     # file") and silently drops the shell back into this service's cgroup via
     # the fallback below. Let systemd generate run-rNNN.scope instead.
     if command -v systemd-run >/dev/null 2>&1; then
-        systemd-run --user --scope --collect --quiet \
-            caelestia shell -d >/dev/null 2>&1 && return 0
+        if systemd-run --user --scope --collect --quiet \
+            caelestia shell -d >/dev/null 2>&1; then
+            restore_lock_if_needed
+            return 0
+        fi
         log "systemd-run scope launch failed; falling back to a direct start"
     fi
-    caelestia shell -d >/dev/null 2>&1 || log "caelestia shell -d failed"
+    if caelestia shell -d >/dev/null 2>&1; then
+        restore_lock_if_needed
+    else
+        log "caelestia shell -d failed"
+    fi
 }
 
 sync_edp() {
@@ -136,7 +194,10 @@ sync_edp() {
     have=$(edp_state)
     [ "$have" = "absent" ] && return 0
 
-    if [ "$(external_count)" -gt 0 ]; then want=off; else want=on; fi
+    local externals
+    externals=$(external_count)
+    if [ "$externals" -gt 0 ]; then want=off; else want=on; fi
+    log "sync: externals=$externals panel=$have want=$want"
     [ "$have" = "$want" ] && return 0
 
     if [ "$want" = off ]; then
@@ -167,8 +228,22 @@ sync_edp() {
 # monitor state, and skipped entirely when the panel is already scanning out,
 # so a normal VT switch costs one screenshot and nothing else.
 vt_watch() {
-    local prev=unknown cur
+    local prev=unknown cur tick=0
     while :; do
+        tick=$((tick + 1))
+        if [ $((tick % 5)) -eq 0 ]; then
+            # Cache the lock state so that, if the shell dies, we know whether
+            # the session has to come back locked.
+            remember_lock_state
+            # The shell does not only die *on* a monitor event: at a dock it
+            # dies a moment after, once the outputs settle and Qt fails to
+            # recreate its EGL surface. The event-driven check runs too early
+            # to catch that, which left the shell dead for the whole docked
+            # session -- no bar, no wallpaper, and a locked session showing
+            # nothing. So poll for it too; ensure_shell is a no-op when the
+            # shell is healthy.
+            ensure_shell
+        fi
         if session_active; then cur=yes; else cur=no; fi
         if [ "$prev" = no ] && [ "$cur" = yes ]; then
             sleep 2 # let the VT restore settle before probing
