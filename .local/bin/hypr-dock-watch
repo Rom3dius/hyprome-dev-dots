@@ -61,6 +61,40 @@ edp_state() {
           else "on" end'
 }
 
+# Hyprland's session only owns the DRM device while it owns the VT. A
+# `hyprctl reload` issued while the session is inactive still updates
+# Hyprland's *logical* monitor state -- hyprctl monitors will happily report
+# disabled=false -- but aquamarine never gets to modeset, so on the next VT
+# switch its CRTC recheck says "eDP-1 is disabled, releasing crtc 432" and the
+# connector is left with "has crtc -1". A connector with no CRTC scans out
+# nothing: the panel is logically on and physically grey. That is why the
+# logical state cannot be trusted as proof the screen works.
+hypr_session() {
+    local pid
+    pid=$(pgrep -x Hyprland | head -1) || return 1
+    [ -n "$pid" ] || return 1
+    sed -n 's/.*session-\([0-9]\+\)\.scope.*/\1/p' "/proc/$pid/cgroup" 2>/dev/null | head -1
+}
+
+session_active() {
+    local sid
+    sid=$(hypr_session) || return 1
+    [ -n "$sid" ] || return 1
+    [ "$(loginctl show-session "$sid" -p Active --value 2>/dev/null)" = yes ]
+}
+
+# The only trustworthy check that eDP-1 is really scanning out: ask the
+# compositor for an actual frame. A connector with no CRTC never delivers one,
+# so grim just blocks until the timeout. Meaningless while the session is
+# inactive (no frames are produced by design), so only call it when active.
+FRAME_PROBE="${XDG_RUNTIME_DIR:-/tmp}/hypr-dock-watch-frame.png"
+output_has_frame() {
+    timeout 5 grim -o eDP-1 "$FRAME_PROBE" >/dev/null 2>&1
+    local rc=$?
+    rm -f "$FRAME_PROBE"
+    return $rc
+}
+
 # The caelestia shell (quickshell, process name "qs") cannot survive the
 # compositor having zero real outputs. The moment eDP-1 goes off with no
 # external monitor left, Qt loses its EGL surface -- its log shows "There are
@@ -77,9 +111,20 @@ shell_alive() { pgrep -u "$(id -u)" -x qs >/dev/null 2>&1; }
 # configuration is already running" and exit 0). So this is a no-op when the
 # shell is healthy, and it cannot race Hyprland's own autostart into running
 # two copies.
+# Launched into its own transient scope, not this service's cgroup. `caelestia
+# shell -d` daemonises but the process stays in whatever cgroup spawned it, so
+# starting it directly would tie the desktop shell's lifetime to this watcher
+# -- `systemctl --user restart hypr-dock-watch` would take the user's bar and
+# wallpaper down with it.
 ensure_shell() {
     shell_alive && return 0
     log "caelestia shell is not running -- restarting it"
+    if command -v systemd-run >/dev/null 2>&1; then
+        systemctl --user reset-failed caelestia-shell.scope >/dev/null 2>&1 || true
+        systemd-run --user --scope --collect --quiet --unit=caelestia-shell \
+            caelestia shell -d >/dev/null 2>&1 && return 0
+        log "systemd-run scope launch failed; falling back to a direct start"
+    fi
     caelestia shell -d >/dev/null 2>&1 || log "caelestia shell -d failed"
 }
 
@@ -110,6 +155,44 @@ sync_edp() {
     printf 'on\n' >"$STATE"
     hyprctl reload >/dev/null
 }
+
+# Undocking while this session does not own the VT (or any reload that lands
+# in that window) leaves eDP-1 CRTC-less, and nothing in Hyprland re-checks it
+# afterwards -- switching back just shows the grey non-scanout. So watch for
+# the session regaining the VT and, if the panel genuinely produces no frame,
+# reload once to force the modeset. Checked with a real frame grab rather than
+# monitor state, and skipped entirely when the panel is already scanning out,
+# so a normal VT switch costs one screenshot and nothing else.
+vt_watch() {
+    local prev=unknown cur
+    while :; do
+        if session_active; then cur=yes; else cur=no; fi
+        if [ "$prev" = no ] && [ "$cur" = yes ]; then
+            sleep 2 # let the VT restore settle before probing
+            # The VT can flip away again inside that window; probing then
+            # always reports "no frame" and would trigger a pointless reload.
+            if ! session_active; then
+                prev=no
+                continue
+            fi
+            if output_has_frame; then
+                log "session reactivated; eDP-1 is scanning out"
+            else
+                log "session reactivated but eDP-1 produced no frame -- reloading"
+                hyprctl reload >/dev/null 2>&1 || true
+                sleep 2
+                ensure_shell
+                output_has_frame || log "eDP-1 still produces no frame after reload"
+            fi
+        fi
+        prev=$cur
+        sleep 2
+    done
+}
+
+vt_watch &
+VT_WATCH_PID=$!
+trap 'kill "$VT_WATCH_PID" 2>/dev/null || true' EXIT
 
 # Cover the case where this starts while already docked.
 sync_edp
