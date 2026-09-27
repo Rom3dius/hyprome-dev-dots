@@ -119,9 +119,12 @@ shell_alive() { pgrep -u "$(id -u)" -x qs >/dev/null 2>&1; }
 ensure_shell() {
     shell_alive && return 0
     log "caelestia shell is not running -- restarting it"
+    # No --unit=: a transient scope lingers while anything is still in it, so a
+    # fixed name collides ("Unit ... was already loaded or has a fragment
+    # file") and silently drops the shell back into this service's cgroup via
+    # the fallback below. Let systemd generate run-rNNN.scope instead.
     if command -v systemd-run >/dev/null 2>&1; then
-        systemctl --user reset-failed caelestia-shell.scope >/dev/null 2>&1 || true
-        systemd-run --user --scope --collect --quiet --unit=caelestia-shell \
+        systemd-run --user --scope --collect --quiet \
             caelestia shell -d >/dev/null 2>&1 && return 0
         log "systemd-run scope launch failed; falling back to a direct start"
     fi
