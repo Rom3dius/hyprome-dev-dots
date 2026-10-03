@@ -11,10 +11,10 @@
 -- setter at all. Only a config reload re-applies monitor rules -- hence
 -- state-file + `hyprctl reload` for both directions.
 local home = os.getenv("HOME")
-local state = (os.getenv("XDG_STATE_HOME") or (home .. "/.local/state"))
-    .. "/hypr-dock-watch/edp"
+local state_dir = (os.getenv("XDG_STATE_HOME") or (home .. "/.local/state"))
+    .. "/hypr-dock-watch"
 
-local f = io.open(state)
+local f = io.open(state_dir .. "/edp")
 if not f then return end -- no override: monitors.lua governs eDP-1
 local want = (f:read("*l") or ""):gsub("%s+", "")
 f:close()
@@ -23,6 +23,19 @@ if want == "off" then
     hl.monitor({ output = "eDP-1", disabled = true })
 elseif want == "on" then
     -- Explicit re-enable, used only as a fallback when monitors.lua has lost
-    -- its eDP-1 block (nwg-displays regenerates that file wholesale).
-    hl.monitor({ output = "eDP-1", mode = "preferred", position = "auto", scale = 1 })
+    -- its eDP-1 block (nwg-displays regenerates that file wholesale) and a
+    -- plain reload didn't bring the panel back on its own (see sync_edp in
+    -- hypr-dock-watch). Replays whatever mode/position/scale
+    -- save_edp_geometry snapshotted right before the panel was last
+    -- disabled, rather than a generic default -- a hardcoded scale here
+    -- used to silently override every nwg-displays scale change for as
+    -- long as this fallback stayed in effect. Falls back to this laptop's
+    -- known-good panel geometry (monitors.lua.reference in the dotfiles
+    -- repo) only if no snapshot exists yet, e.g. a fresh machine that has
+    -- never docked before.
+    local ok, geo = pcall(dofile, state_dir .. "/edp-geometry.lua")
+    if not ok or type(geo) ~= "table" then
+        geo = { mode = "2880x1920@120.000000", position = "0x0", scale = 2.0 }
+    end
+    hl.monitor({ output = "eDP-1", mode = geo.mode, position = geo.position, scale = geo.scale })
 end

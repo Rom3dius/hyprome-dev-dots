@@ -61,6 +61,36 @@ edp_state() {
           else "on" end'
 }
 
+GEOMETRY="$STATE_DIR/edp-geometry.lua"
+
+# Snapshots eDP-1's live mode/position/scale into a tiny Lua table, right
+# before this script disables it for docking. dock-state.lua's forced
+# re-enable fallback (see sync_edp) replays this instead of a hardcoded
+# geometry, so an undock always restores whatever was actually running
+# beforehand -- including scale changes made via nwg-displays -- rather than
+# silently reverting you to some generic default every time that fallback
+# fires.
+save_edp_geometry() {
+    local json width height refresh x y scale
+    json=$(hyprctl monitors -j | jq -c '.[] | select(.name == "eDP-1")')
+    [ -n "$json" ] || return 0
+    width=$(printf '%s' "$json" | jq -r '.width')
+    height=$(printf '%s' "$json" | jq -r '.height')
+    refresh=$(printf '%s' "$json" | jq -r '.refreshRate')
+    x=$(printf '%s' "$json" | jq -r '.x')
+    y=$(printf '%s' "$json" | jq -r '.y')
+    scale=$(printf '%s' "$json" | jq -r '.scale')
+    cat >"$GEOMETRY" <<EOF
+-- Snapshot of eDP-1's live geometry, written by hypr-dock-watch just before
+-- disabling the panel for docking. See dock-state.lua.
+return {
+	mode = "${width}x${height}@${refresh}",
+	position = "${x}x${y}",
+	scale = ${scale},
+}
+EOF
+}
+
 # Hyprland's session only owns the DRM device while it owns the VT. A
 # `hyprctl reload` issued while the session is inactive still updates
 # Hyprland's *logical* monitor state -- hyprctl monitors will happily report
@@ -217,10 +247,24 @@ sync_edp() {
     local externals
     externals=$(external_count)
     if [ "$externals" -gt 0 ]; then want=off; else want=on; fi
+
+    if [ "$have" = "$want" ]; then
+        # Nothing to transition, but a forced "on" override from a past
+        # dock cycle can be stuck here indefinitely -- it keeps re-applying
+        # its snapshotted geometry on *every* reload (including ones that
+        # have nothing to do with docking), masking any scale/mode change
+        # made via nwg-displays in the meantime. Opportunistically check
+        # whether monitors.lua can now stand on its own and drop the
+        # override if so. A no-op (no reload) when there is no override.
+        if [ "$want" = on ] && [ -f "$STATE" ] && [ "$(cat "$STATE" 2>/dev/null)" = on ]; then
+            heal_forced_override
+        fi
+        return 0
+    fi
     log "sync: externals=$externals panel=$have want=$want"
-    [ "$have" = "$want" ] && return 0
 
     if [ "$want" = off ]; then
+        save_edp_geometry
         printf 'off\n' >"$STATE"
         hyprctl reload >/dev/null
         return 0
@@ -234,8 +278,28 @@ sync_edp() {
 
     # monitors.lua has no usable eDP-1 block (nwg-displays rewrote it while
     # docked). Force the panel on explicitly rather than leave the user
-    # staring at a dead screen.
+    # staring at a dead screen. dock-state.lua replays the geometry
+    # save_edp_geometry snapshotted above, not a generic default.
     log "eDP-1 still off after reload; forcing explicit enable"
+    printf 'on\n' >"$STATE"
+    hyprctl reload >/dev/null
+}
+
+# Only called when the panel is already on *and* a forced override is the
+# reason why (see sync_edp). Tries dropping the override; keeps it dropped
+# if monitors.lua alone still produces a working panel, restores it
+# otherwise. Costs one reload (and the matching risk of the resize/redraw
+# flicker that implies) -- callers are expected to rate-limit how often
+# they ask for this, not call it on every tick.
+heal_forced_override() {
+    rm -f "$STATE"
+    hyprctl reload >/dev/null
+    sleep 1
+    if [ "$(edp_state)" = on ]; then
+        log "monitors.lua now handles eDP-1 on its own; dropped the forced override"
+        return 0
+    fi
+    log "monitors.lua still can't enable eDP-1 alone; keeping the forced override"
     printf 'on\n' >"$STATE"
     hyprctl reload >/dev/null
 }
@@ -263,6 +327,16 @@ vt_watch() {
             # nothing. So poll for it too; ensure_shell is a no-op when the
             # shell is healthy.
             ensure_shell
+        fi
+        if [ $((tick % 30)) -eq 0 ]; then
+            # Safety net, independent of the socket2 event loop below: catches
+            # a missed monitoraddedv2/monitorremovedv2 event, and is also how
+            # a forced eDP-1 override (see heal_forced_override) eventually
+            # gets dropped if it went stuck with no further dock events to
+            # prompt a retry. Rate-limited to ~once/minute since a reload
+            # happening here is visible (brief flicker) -- sync_edp is a
+            # no-op in the common case where nothing needs fixing.
+            sync_edp
         fi
         if session_active; then cur=yes; else cur=no; fi
         if [ "$prev" = no ] && [ "$cur" = yes ]; then
