@@ -11,3 +11,6 @@ brew "lazygit"
 brew "ripgrep"
 brew "fd"
 brew "wl-clipboard"  # already provided by the host; listed for reproducibility
+
+# Claude Code tooling (wired up by the "Claude Code" section of yadm bootstrap)
+brew "rtk"           # compresses shell output before it reaches the model (PreToolUse hook)
