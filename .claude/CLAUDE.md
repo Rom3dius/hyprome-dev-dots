@@ -11,13 +11,13 @@
 
 ## Tooling
 - Code navigation: prefer Serena's symbol tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`) over reading whole files or broad greps.
+- Task tracking: projects using `beans` get its context at session start; use it for multi-step work there.
 
 ## Serena
 - Serena activates the nearest repo root (`.git` or `.serena/project.yml`) from the cwd at startup; only call `activate_project` when switching repos or when it reports no project.
 - First time in a repo (Serena just generated `.serena/project.yml`): check that `language_servers` covers every language in the repo — detection often picks just one — and add build output and vendored dirs to `ignored_paths`.
 - Then ask whether to commit `.serena/project.yml` or add `.serena/` to `.git/info/exclude`. Serena's own `.serena/.gitignore` already keeps its cache out.
 - Serena memories are disabled; project knowledge goes in the repo's `CLAUDE.md` or Claude's own memory.
-- Task tracking: projects using `beans` get its context at session start; use it for multi-step work there.
 
 ## Secrets and SSH (1Password)
 - SSH keys live in 1Password (vault `Dev`) and are served by its agent: `~/.ssh/config` sets `IdentityAgent ~/.1password/agent.sock` for every host. There are no key files on disk — don't generate or look for any; `ssh`/`git push` pop a 1Password approval for the user.
