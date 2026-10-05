@@ -140,7 +140,14 @@ ignored_memory_patterns: []
 tool_timeout: 240
 
 # list of tools to be globally excluded
-excluded_tools: []
+excluded_tools:
+- write_memory
+- read_memory
+- delete_memory
+- edit_memory
+- rename_memory
+- list_memories
+- onboarding
 
 # list of optional tools (which are disabled by default) to be included
 included_optional_tools: []
@@ -158,6 +165,7 @@ base_modes:
 - interactive
 - editing
 default_modes:
+- no-memories
 
 # Used as default for tools where the apply method has a default maximal answer length.
 # Even though the value of the max_answer_chars can be changed when calling the tool, it may make sense to adjust this default
