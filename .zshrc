@@ -34,6 +34,10 @@ if [[ -z ${BREW_LOADED-} ]]; then                # run only once per shell
   [[ -x $HB ]] && eval "$($HB shellenv 2>/dev/null)" && export BREW_LOADED=1
 fi
 
+# dotnet (brew) + global tools (pac, pwsh)
+export DOTNET_ROOT="/home/linuxbrew/.linuxbrew/opt/dotnet/libexec"
+path+=("$HOME/.dotnet/tools")
+
 # setup zsh and zsh plugins
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME=""  # Using Starship prompt instead
