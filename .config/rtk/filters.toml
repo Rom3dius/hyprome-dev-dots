@@ -1,0 +1,40 @@
+# User-global RTK filters
+# Project-local .rtk/filters.toml takes precedence over these.
+schema_version = 1
+
+[filters.beans-read]
+description = "beans show/list: drop column padding, blank lines and rule lines"
+match_command = "^beans\\s+(show|list|ls)\\b"
+strip_ansi = true
+replace = [
+  { pattern = "[ \\t]+$", replacement = "" },
+]
+strip_lines_matching = [
+  "^\\s*$",
+  "^\\s*─+\\s*$",
+]
+
+[[tests.beans-read]]
+name = "show: header, rules and padded blank lines go, body stays"
+input = """
+balance-rs-n9sa  todo   feature  [normal]  ui      
+Submit errors attached to the field         
+────────────────────────────────────          
+parent: balance-rs-thut                     
+────────────────────────────────────          
+                                            
+
+  SubmitNote renders the whole refusal      
+  as one paragraph.                         
+"""
+expected = "balance-rs-n9sa  todo   feature  [normal]  ui\nSubmit errors attached to the field\nparent: balance-rs-thut\n  SubmitNote renders the whole refusal\n  as one paragraph."
+
+[[tests.beans-read]]
+name = "list: tree kept, rule line dropped"
+input = """
+ID                        T  S  TITLE
+──────────────────────────────────────
+balance-rs-cun0            M   T   ! M8
+├─ balance-rs-sfhk         E   T   ‼ Safe
+"""
+expected = "ID                        T  S  TITLE\nbalance-rs-cun0            M   T   ! M8\n├─ balance-rs-sfhk         E   T   ‼ Safe"
