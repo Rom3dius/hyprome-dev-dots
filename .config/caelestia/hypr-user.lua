@@ -32,6 +32,16 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd("/usr/libexec/hyprpolkitagent")
 end)
 
+-- xdg-desktop-portal-hyprland dies with the compositor, but the
+-- xdg-desktop-portal frontend outlives it and never re-activates it. After
+-- a crash (start-hyprland's watchdog relaunches into --safe-mode), the
+-- ScreenCast portal reports AvailableSourceTypes=0: apps' share pickers
+-- come up near-empty and freeze on any capture. Restart both on every
+-- compositor start so they bind to the current Hyprland instance.
+hl.on("hyprland.start", function()
+	hl.exec_cmd("systemctl --user restart xdg-desktop-portal-hyprland xdg-desktop-portal")
+end)
+
 -- ─────────────────────────────────────────────────────────────────────
 -- Keybinds carried over from the old (pre-caelestia) binds.conf on the
 -- hyprome-backup branch, that don't have a matching caelestia variable to
