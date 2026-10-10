@@ -34,6 +34,9 @@ if [[ -z ${BREW_LOADED-} ]]; then                # run only once per shell
   [[ -x $HB ]] && eval "$($HB shellenv 2>/dev/null)" && export BREW_LOADED=1
 fi
 
+# hyprmoncfg's include goes in hypr-user.lua, not the vendored hypr/hyprland.lua
+export HYPRLAND_CONFIG="$HOME/.config/caelestia/hypr-user.lua"
+
 # dotnet (brew) + global tools (pac, pwsh)
 export DOTNET_ROOT="/home/linuxbrew/.linuxbrew/opt/dotnet/libexec"
 path+=("$HOME/.dotnet/tools")

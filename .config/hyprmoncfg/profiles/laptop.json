@@ -1,0 +1,42 @@
+{
+  "name": "laptop",
+  "created_at": "2026-10-10T15:35:39.384141373Z",
+  "updated_at": "2026-10-10T15:35:39.384612349Z",
+  "outputs": [
+    {
+      "key": "boe|ne135a1m-ny1",
+      "match_key": "boe|ne135a1m-ny1",
+      "name": "eDP-1",
+      "description": "BOE NE135A1M-NY1",
+      "make": "BOE",
+      "model": "NE135A1M-NY1",
+      "enabled": true,
+      "mode": "2880x1920@60.00Hz",
+      "width": 2880,
+      "height": 1920,
+      "refresh": 60.001,
+      "x": 0,
+      "y": 0,
+      "scale": 1.5,
+      "transform": 0,
+      "bitdepth": 8,
+      "cm": "srgb",
+      "sdr_brightness": 1,
+      "sdr_saturation": 1,
+      "sdr_min_luminance": 0.2,
+      "sdr_max_luminance": 80,
+      "min_luminance": 0
+    }
+  ],
+  "workspaces": {
+    "enabled": false,
+    "strategy": "manual",
+    "max_workspaces": 9,
+    "group_size": 3,
+    "monitor_order": [
+      "boe|ne135a1m-ny1"
+    ],
+    "rules": []
+  },
+  "exec": ""
+}

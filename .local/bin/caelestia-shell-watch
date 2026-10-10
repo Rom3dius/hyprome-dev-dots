@@ -1,0 +1,240 @@
+#!/usr/bin/env bash
+# Keeps the caelestia shell alive across monitor changes. Monitor layout itself
+# is owned by hyprmoncfgd (profiles in ~/.config/hyprmoncfg/profiles/); this
+# script never touches outputs. It only exists because quickshell cannot
+# survive the compositor having zero real outputs, which every undock passes
+# through, and nothing else ever relaunches it.
+#
+# Runs under caelestia-shell-watch.service (PartOf=graphical-session.target),
+# not a Hyprland exec-once/hl.on autostart, so it gets proper supervision
+# (Restart=on-failure) and starts/stops with the session instead of being
+# an orphaned background process.
+set -euo pipefail
+
+SOCK="$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia-shell-watch"
+
+mkdir -p "$STATE_DIR"
+
+log() { printf '%s\n' "$*" >&2; }
+
+# Hyprland's session only owns the DRM device while it owns the VT. A
+# `hyprctl reload` issued while the session is inactive still updates
+# Hyprland's *logical* monitor state -- hyprctl monitors will happily report
+# disabled=false -- but aquamarine never gets to modeset, so on the next VT
+# switch its CRTC recheck says "eDP-1 is disabled, releasing crtc 432" and the
+# connector is left with "has crtc -1". A connector with no CRTC scans out
+# nothing: the panel is logically on and physically grey. That is why the
+# logical state cannot be trusted as proof the screen works.
+hypr_session() {
+    local pid
+    pid=$(pgrep -x Hyprland | head -1) || return 1
+    [ -n "$pid" ] || return 1
+    sed -n 's/.*session-\([0-9]\+\)\.scope.*/\1/p' "/proc/$pid/cgroup" 2>/dev/null | head -1
+}
+
+session_active() {
+    local sid
+    sid=$(hypr_session) || return 1
+    [ -n "$sid" ] || return 1
+    [ "$(loginctl show-session "$sid" -p Active --value 2>/dev/null)" = yes ]
+}
+
+# The only trustworthy check that the session is really scanning out: ask the
+# compositor for an actual frame. A connector with no CRTC never delivers one,
+# so grim just blocks until the timeout. Meaningless while the session is
+# inactive (no frames are produced by design), so only call it when active.
+#
+# Probes whichever output is currently enabled rather than eDP-1 by name:
+# while docked the panel is deliberately off, and probing it there reported
+# "no frame" every time and triggered a pointless reload on each VT switch.
+FRAME_PROBE="${XDG_RUNTIME_DIR:-/tmp}/caelestia-shell-watch-frame.png"
+active_output() {
+    hyprctl monitors -j | jq -r '[.[] | select(.disabled == false) | .name][0] // empty'
+}
+output_has_frame() {
+    local out
+    out=$(active_output)
+    [ -n "$out" ] || return 1
+    timeout 5 grim -o "$out" "$FRAME_PROBE" >/dev/null 2>&1
+    local rc=$?
+    rm -f "$FRAME_PROBE"
+    return $rc
+}
+
+# The caelestia shell (quickshell, process name "qs") cannot survive the
+# compositor having zero real outputs. The moment the last output goes away,
+# Qt loses its EGL surface -- its log shows "There are no outputs - creating
+# placeholder screen", "Layershell screen does not correspond to a real
+# screen", then "Could not create EGL surface (EGL error 0x3000)" -- every
+# layer surface closes and the process exits for good. It is started once by a
+# one-shot hl.on("hyprland.start") exec_cmd in caelestia's execs.lua, so
+# nothing ever brings it back: the panel comes back as a bare grey screen with
+# no bar and no wallpaper.
+shell_alive() { pgrep -u "$(id -u)" -x qs >/dev/null 2>&1; }
+
+LOCK_STATE="$STATE_DIR/locked"
+
+# Asked of quickshell directly; the `caelestia` python wrapper shells out to
+# exactly this and turns a momentarily-absent shell into a traceback.
+shell_locked() {
+    [ "$(qs -c caelestia ipc call lock isLocked 2>/dev/null | tr -d '[:space:]')" = true ]
+}
+
+remember_lock_state() {
+    shell_alive || return 0
+    if shell_locked; then printf 'locked\n' >"$LOCK_STATE"
+    else printf 'unlocked\n' >"$LOCK_STATE"; fi
+}
+
+# If the session was locked when the shell died, the lockscreen died with it
+# and Hyprland is left on its crashed-lockscreen page ("you locked your screen
+# but the lockscreen app died"), which only hl.clear_crashed_lockscreen()
+# clears -- that is the "hyprland crashed screen" seen after an undock.
+# Clearing on its own would silently unlock the machine, so clear and
+# immediately re-lock with the freshly started shell: the session ends up
+# locked again, with a lockscreen that actually draws.
+restore_lock_if_needed() {
+    [ -f "$LOCK_STATE" ] || return 0
+    [ "$(cat "$LOCK_STATE" 2>/dev/null)" = locked ] || return 0
+    # A reading left over from an earlier session must never lock a fresh
+    # login, so only act on one taken in the last couple of minutes.
+    if [ -n "$(find "$LOCK_STATE" -mmin +2 2>/dev/null)" ]; then
+        log "ignoring stale lock state"
+        return 0
+    fi
+
+    local i
+    for i in $(seq 1 15); do shell_alive && break; sleep 1; done
+    if ! shell_alive; then
+        log "shell never came up; cannot restore the lock"
+        return 1
+    fi
+    sleep 2
+
+    log "session was locked when the shell died -- clearing crashed lockscreen and re-locking"
+    hyprctl eval 'hl.clear_crashed_lockscreen()' >/dev/null 2>&1 || true
+    sleep 1
+    qs -c caelestia ipc call lock lock >/dev/null 2>&1 || log "re-lock command failed"
+    sleep 2
+    if shell_locked; then
+        log "session re-locked"
+    else
+        log "WARNING: session is NOT locked after recovery -- lock it manually"
+    fi
+}
+
+# Only ever starts the shell, never kills it, and `caelestia shell -d` is
+# idempotent (an existing instance makes it print "An instance of this
+# configuration is already running" and exit 0). So this is a no-op when the
+# shell is healthy, and it cannot race Hyprland's own autostart into running
+# two copies.
+# Launched into its own transient scope, not this service's cgroup. `caelestia
+# shell -d` daemonises but the process stays in whatever cgroup spawned it, so
+# starting it directly would tie the desktop shell's lifetime to this watcher
+# -- `systemctl --user restart caelestia-shell-watch` would take the user's bar
+# and wallpaper down with it.
+ensure_shell() {
+    shell_alive && return 0
+    # Starting the shell while the session does not own the VT yields a
+    # half-dead shell: Qt cannot create an EGL surface, so the bar comes up
+    # but the wallpaper layer renders solid black and never recovers -- a
+    # 28KB frame where a working desktop grabs 4.3MB. Restarting it once the
+    # session is active fixes it, so simply wait: this is polled, and
+    # vt_watch calls ensure_shell again the moment the VT comes back.
+    if ! session_active; then
+        log "shell is down but the session does not own the VT; deferring restart"
+        return 0
+    fi
+    log "caelestia shell is not running -- restarting it"
+    # No --unit=: a transient scope lingers while anything is still in it, so a
+    # fixed name collides ("Unit ... was already loaded or has a fragment
+    # file") and silently drops the shell back into this service's cgroup via
+    # the fallback below. Let systemd generate run-rNNN.scope instead.
+    if command -v systemd-run >/dev/null 2>&1; then
+        if systemd-run --user --scope --collect --quiet \
+            caelestia shell -d >/dev/null 2>&1; then
+            restore_lock_if_needed
+            return 0
+        fi
+        log "systemd-run scope launch failed; falling back to a direct start"
+    fi
+    if caelestia shell -d >/dev/null 2>&1; then
+        restore_lock_if_needed
+    else
+        log "caelestia shell -d failed"
+    fi
+}
+
+# A monitor change that lands while this session does not own the VT (an
+# undock while switched to a TTY, or hyprmoncfgd reloading in that window)
+# leaves the active output CRTC-less, and nothing in Hyprland re-checks it
+# afterwards -- switching back just shows the grey non-scanout. So watch for
+# the session regaining the VT and, if the output genuinely produces no frame,
+# reload once to force the modeset. Checked with a real frame grab rather than
+# monitor state, and skipped entirely when the output is already scanning
+# out, so a normal VT switch costs one screenshot and nothing else.
+vt_watch() {
+    local prev=unknown cur tick=0
+    while :; do
+        tick=$((tick + 1))
+        if [ $((tick % 5)) -eq 0 ]; then
+            # Cache the lock state so that, if the shell dies, we know whether
+            # the session has to come back locked.
+            remember_lock_state
+            # The shell does not only die *on* a monitor event: at a dock it
+            # dies a moment after, once the outputs settle and Qt fails to
+            # recreate its EGL surface. The event-driven check runs too early
+            # to catch that, so poll for it too; ensure_shell is a no-op when
+            # the shell is healthy.
+            ensure_shell
+        fi
+        if session_active; then cur=yes; else cur=no; fi
+        if [ "$prev" = no ] && [ "$cur" = yes ]; then
+            sleep 2 # let the VT restore settle before probing
+            # The VT can flip away again inside that window; probing then
+            # always reports "no frame" and would trigger a pointless reload.
+            if ! session_active; then
+                prev=no
+                continue
+            fi
+            if output_has_frame; then
+                log "session reactivated; $(active_output) is scanning out"
+            else
+                log "session reactivated but $(active_output) produced no frame -- reloading"
+                hyprctl reload >/dev/null 2>&1 || true
+                sleep 2
+                ensure_shell
+                output_has_frame || log "$(active_output) still produces no frame after reload"
+            fi
+        fi
+        prev=$cur
+        sleep 2
+    done
+}
+
+vt_watch &
+VT_WATCH_PID=$!
+trap 'kill "$VT_WATCH_PID" 2>/dev/null || true' EXIT
+
+# Cover the case where the shell is already dead when we come up: this
+# service was restarted mid-session after an undock killed it. At login
+# Hyprland's own exec_cmd autostart normally wins this race, so give it a few
+# seconds before stepping in -- `caelestia shell -d` is idempotent either way,
+# so the worst case is a no-op.
+for _ in 1 2 3 4 5; do
+    shell_alive && break
+    sleep 2
+done
+ensure_shell
+
+socat -U - UNIX-CONNECT:"$SOCK" | while IFS= read -r line; do
+    case "$line" in
+        monitoraddedv2* | monitorremovedv2*)
+            # Give hyprmoncfgd time to apply the matching profile first;
+            # relaunching onto FALLBACK just kills quickshell again.
+            sleep 3
+            ensure_shell
+            ;;
+    esac
+done

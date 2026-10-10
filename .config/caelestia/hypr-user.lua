@@ -1,19 +1,9 @@
 -- Loaded last by caelestia's hypr/hyprland.lua, after all its default config.
--- Monitor layout lives in ~/.config/hypr/monitors.lua (NOT this file, and
--- NOT tracked by yadm/caelestia sync — see the rsync --exclude in
--- .config/yadm/bootstrap) so nwg-displays can write to it directly: run
--- `nwg-displays` (installed via hyprome's recipe.yml) to adjust
--- resolution/refresh-rate/position/scale through a GUI instead of hand-
--- editing Lua. It generates real hl.monitor({...}) blocks matching this
--- config's syntax. A recovery copy lives at monitors.lua.reference in
--- hyprome-dev-dots' repo root, in case this machine is ever reprovisioned.
-require("monitors")
-
--- Dock state for eDP-1, applied after monitors.lua so it overrides the
--- eDP-1 block that file declares. Lives in ~/.config/caelestia/ rather than
--- next to monitors.lua because bootstrap rsync --delete's ~/.config/hypr/
--- from the upstream caelestia checkout, which would wipe it.
-dofile(os.getenv("HOME") .. "/.config/caelestia/dock-state.lua")
+-- Monitor layout is owned by hyprmoncfgd (hyprmoncfgd.service), not this
+-- file: it applies the best-matching profile from ~/.config/hyprmoncfg/profiles/
+-- on hotplug and lid changes. Edit layouts with the `hyprmoncfg` TUI. Its
+-- generated rules load from the include it keeps at the very end of this
+-- file, so nothing here can override them.
 
 -- NOTE: the old config also pinned default workspaces per monitor
 -- (workspace 1/2 on the dock outputs, 3 on eDP-1). caelestia doesn't
@@ -102,3 +92,6 @@ hl.bind("XF86Refresh", hl.dsp.exec_cmd("wtype -k F5"))
 -- bind to the clipboard). fuzzel is a floating overlay itself, no
 -- window_rule needed.
 hl.bind("SUPER + F1", hl.dsp.exec_cmd("$HOME/.local/bin/keybind-cheatsheet"))
+
+-- Added by hyprmoncfg: its generated monitor rules load last, so nothing before this can override the applied layout.
+do local path = os.getenv("HOME") .. "/.config/hypr/hyprmoncfg-monitors.lua"; local file = io.open(path, "r"); if file then file:close(); dofile(path) end end

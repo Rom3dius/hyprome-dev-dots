@@ -1,0 +1,21 @@
+# Owns the monitor layout: applies the best-matching profile from
+# ~/.config/hyprmoncfg/profiles/ on hotplug and lid changes. Session-bound
+# (unlike upstream's default.target unit) so it restarts with each Hyprland
+# instance. HYPRLAND_CONFIG points hyprmoncfg's include at hypr-user.lua
+# because the real root, ~/.config/hypr/hyprland.lua, is vendored from
+# caelestia and rsync --delete'd by yadm bootstrap.
+[Unit]
+Description=Hyprland monitor profile daemon (hyprmoncfgd)
+PartOf=graphical-session.target
+After=graphical-session.target
+ConditionEnvironment=WAYLAND_DISPLAY
+
+[Service]
+Type=simple
+Environment=HYPRLAND_CONFIG=%h/.config/caelestia/hypr-user.lua
+ExecStart=%h/.local/bin/hyprmoncfgd
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

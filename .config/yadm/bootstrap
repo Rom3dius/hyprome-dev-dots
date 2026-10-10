@@ -7,8 +7,10 @@ if command -v systemctl &>/dev/null && systemctl --user --version &>/dev/null; t
   systemctl --user daemon-reload
   systemctl --user enable rclone-zettelkasten.service
   systemctl --user start rclone-zettelkasten.service
-  systemctl --user enable hypr-dock-watch.service
-  systemctl --user start hypr-dock-watch.service
+  systemctl --user enable hyprmoncfgd.service
+  systemctl --user start hyprmoncfgd.service
+  systemctl --user enable caelestia-shell-watch.service
+  systemctl --user start caelestia-shell-watch.service
   # llama-server + mcp-servers: manual only (GPU-heavy)
   # Start with: systemctl --user start llama-server
   # (mcp-servers starts/stops automatically with llama-server)
@@ -48,6 +50,15 @@ if command -v claude &>/dev/null; then
   fi
 fi
 
+# hyprmoncfg (monitor profiles + hyprmoncfgd). Built from source: the COPR
+# RPM requires `hyprland`, which the image's hyprland-git doesn't provide.
+# Pinned; bump the tag deliberately.
+if command -v go &>/dev/null && ! command -v hyprmoncfgd &>/dev/null; then
+  echo "Installing hyprmoncfg..."
+  GOBIN="$HOME/.local/bin" go install github.com/crmne/hyprmoncfg/cmd/hyprmoncfg@v1.22.1
+  GOBIN="$HOME/.local/bin" go install github.com/crmne/hyprmoncfg/cmd/hyprmoncfgd@v1.22.1
+fi
+
 # Install neovim config
 if [ ! -f ~/.config/nvim/init.lua ]; then
   echo "Installing NeoVim config"
@@ -80,20 +91,14 @@ done
 
 # hypr/ needs special handling: scheme/current.lua is a runtime state file
 # (the active colour scheme, written by `caelestia scheme set`) and
-# monitors.lua is machine-specific state (written by nwg-displays) — neither
-# is part of caelestia's static config, so a plain overwrite would revert
-# the theme / clobber the monitor layout on every yadm bootstrap re-run.
-# rsync --delete syncs everything else while leaving those two alone.
+# hyprmoncfg-monitors.lua is machine-specific state (written by hyprmoncfgd
+# from the active profile) — neither is part of caelestia's static config, so
+# a plain overwrite would revert the theme / drop the monitor layout on every
+# yadm bootstrap re-run. rsync --delete syncs everything else while leaving
+# those two alone. No seeding needed: hyprmoncfg's include in hypr-user.lua
+# skips the file while it doesn't exist.
 mkdir -p ~/.config/hypr
-rsync -a --delete --exclude='scheme/current.lua' --exclude='monitors.lua' "$CAELESTIA_CACHE/hypr/" ~/.config/hypr/
-
-# Seed monitors.lua on first run only — hypr-user.lua does `require("monitors")`,
-# which errors out if the file doesn't exist at all (unlike scheme/current.lua,
-# caelestia's hyprland.lua has no maybe_copy-style fallback for it).
-# monitors.lua.reference is yadm-tracked at the repo root ($HOME).
-if [ ! -f ~/.config/hypr/monitors.lua ] && [ -f ~/monitors.lua.reference ]; then
-  cp ~/monitors.lua.reference ~/.config/hypr/monitors.lua
-fi
+rsync -a --delete --exclude='scheme/current.lua' --exclude='hyprmoncfg-monitors.lua' "$CAELESTIA_CACHE/hypr/" ~/.config/hypr/
 
 mkdir -p ~/.local/state/caelestia
 
