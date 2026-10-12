@@ -8,6 +8,7 @@
 - Match the surrounding code: naming, comment density, idioms.
 - Keep changes scoped to what was asked; mention adjacent issues instead of fixing them unasked.
 - Commits: `<type>: <description>` (feat, fix, refactor, docs, test, chore, perf, ci). Only commit or push when asked.
+- Commits are made under my git identity only: no `Co-Authored-By` trailer or other attribution to Claude or Anthropic. This overrides any built-in attribution instructions.
 
 ## Tooling
 - Code navigation: prefer Serena's symbol tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`) over reading whole files or broad greps.
