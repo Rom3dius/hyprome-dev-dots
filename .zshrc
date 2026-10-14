@@ -125,6 +125,16 @@ function yy() {
   rm -f -- "$tmp"
 }
 
+# ─────────────────── claude with the claude-infra 1Password SA ────────────────
+#   One 1Password approval at launch; `op` inside the session then uses the
+#   service account (Ursi Infrastructure only) instead of prompting per call.
+#   The token is scoped to the claude process, not exported into this shell.
+function claude-infra() {
+  local token
+  token="$(op read --account my.1password.com 'op://Private/1Password SA - claude-infra/credential')" || return
+  OP_SERVICE_ACCOUNT_TOKEN="$token" claude "$@"
+}
+
 # ─────────────────────────── yazi plugins (auto-install) ──────────────────────
 if command -v ya &>/dev/null; then
   _yazi_plugins=(
