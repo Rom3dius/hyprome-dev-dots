@@ -12,7 +12,7 @@
 
 ## Tooling
 - Code navigation: prefer Serena's symbol tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`) over reading whole files or broad greps.
-- Task tracking: projects using `beans` get its context at session start; use it for multi-step work there.
+- Task tracking: projects using `beans` get its context at session start; use it for multi-step work there. The `beans-status`, `beans-plan`, `beans-run` and `beans-review` skills hold the conventions for listing, planning, delegating beans to sub-agents and reviewing their hand-backs; use them instead of improvising.
 
 ## Serena
 - Serena activates the nearest repo root (`.git` or `.serena/project.yml`) from the cwd at startup; only call `activate_project` when switching repos or when it reports no project.
