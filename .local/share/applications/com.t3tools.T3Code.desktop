@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=T3 Code
+Exec="/home/romedius/Applications/T3 Code.AppImage" %U
+Icon=/home/romedius/.local/share/icons/com.t3tools.T3Code.desktop.png
+Terminal=false
+StartupNotify=false
+MimeType=x-scheme-handler/t3code;
