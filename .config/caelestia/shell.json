@@ -1,4 +1,17 @@
 {
+    "general": {
+        "idle": {
+            "timeouts": [
+                { "timeout": 180, "idleAction": "lock" },
+                {
+                    "timeout": 300,
+                    "idleAction": "hl.dsp.dpms({ action = \"off\" })",
+                    "returnAction": "hl.dsp.dpms({ action = \"on\" })"
+                },
+                { "timeout": 600, "idleAction": ["systemctl", "suspend"] }
+            ]
+        }
+    },
     "services": {
         "useFahrenheit": false
     }
